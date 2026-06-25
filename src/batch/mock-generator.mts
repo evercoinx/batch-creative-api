@@ -1,4 +1,4 @@
-import { isPresetName, presetUrl } from "../presets.mts";
+import { presetUrl } from "../presets.mts";
 import { PLATFORM_CONFIG } from "./platform-config.mts";
 import type { ImageInput, Platform } from "./schema.mts";
 import type { Post } from "./types.mts";
@@ -19,7 +19,7 @@ function resolveImageUrl(product: ImageInput): string {
 }
 
 function describeProduct(product: ImageInput): string {
-	if ("preset" in product && isPresetName(product.preset)) {
+	if ("preset" in product) {
 		return product.preset;
 	}
 	return "your product";
