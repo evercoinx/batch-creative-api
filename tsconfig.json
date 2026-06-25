@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["esnext", "dom"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": [".sandcastle/**/*.mts", "src/**/*.mts"]
+}
