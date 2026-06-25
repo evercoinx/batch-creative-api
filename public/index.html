@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Batch Creative API — Demo</title>
+		<style>
+			body { font-family: system-ui, sans-serif; max-width: 880px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+			h1 { margin-bottom: 0.25rem; }
+			.muted { color: #666; }
+			.thumbs { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1rem 0; }
+			.thumb { border: 2px solid transparent; border-radius: 8px; cursor: pointer; padding: 2px; width: 120px; }
+			.thumb img { width: 100%; height: 90px; object-fit: cover; border-radius: 6px; display: block; }
+			.thumb.selected { border-color: #2563eb; }
+			.thumb span { font-size: 0.75rem; display: block; text-align: center; }
+			button { background: #2563eb; color: #fff; border: 0; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+			button:disabled { opacity: 0.5; cursor: default; }
+			label { font-weight: 600; }
+			.items { display: grid; gap: 0.75rem; margin-top: 1.5rem; }
+			.item { display: flex; gap: 1rem; border: 1px solid #e5e5e5; border-radius: 8px; padding: 0.75rem; align-items: center; }
+			.item img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; }
+			.badge { font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; text-transform: uppercase; }
+			.pending { background: #f1f5f9; color: #475569; }
+			.running { background: #fef9c3; color: #854d0e; }
+			.done { background: #dcfce7; color: #166534; }
+			.failed { background: #fee2e2; color: #991b1b; }
+		</style>
+	</head>
+	<body>
+		<h1>Batch Creative API</h1>
+		<p class="muted">Interactive demo — running in mock mode. Pick product images, choose a platform, and submit a batch.</p>
+
+		<label>Product images (click to select)</label>
+		<div class="thumbs" id="thumbs"></div>
+
+		<label for="platform">Platform</label>
+		<select id="platform">
+			<option value="instagram">instagram</option>
+			<option value="x">x</option>
+			<option value="linkedin">linkedin</option>
+		</select>
+
+		<p><button id="submit">Submit batch</button></p>
+
+		<div id="status" class="muted"></div>
+		<div class="items" id="items"></div>
+
+		<script>
+			const PRESETS = [
+				{ name: "lamp", url: "/data/product/product-lamp.jpg" },
+				{ name: "phone", url: "/data/product/product-phone.jpg" },
+				{ name: "shampoo", url: "/data/product/product-shampoo.jpg" },
+			];
+			const selected = new Set(["lamp", "phone"]);
+
+			const thumbs = document.getElementById("thumbs");
+			for (const preset of PRESETS) {
+				const el = document.createElement("div");
+				el.className = "thumb" + (selected.has(preset.name) ? " selected" : "");
+				el.innerHTML = `<img src="${preset.url}" alt="${preset.name}" /><span>${preset.name}</span>`;
+				el.onclick = () => {
+					if (selected.has(preset.name)) selected.delete(preset.name);
+					else selected.add(preset.name);
+					el.classList.toggle("selected");
+				};
+				thumbs.appendChild(el);
+			}
+
+			const itemsEl = document.getElementById("items");
+			const statusEl = document.getElementById("status");
+			const submitBtn = document.getElementById("submit");
+
+			function render(batch) {
+				statusEl.textContent = `Batch ${batch.id} — ${batch.status}`;
+				itemsEl.innerHTML = "";
+				for (const item of batch.items) {
+					const div = document.createElement("div");
+					div.className = "item";
+					const img = item.post ? `<img src="${item.post.imageUrl}" alt="" />` : "";
+					const caption = item.post ? item.post.caption : item.error || "…";
+					const tags = item.post ? item.post.hashtags.map((t) => "#" + t).join(" ") : "";
+					div.innerHTML = `${img}<div><span class="badge ${item.status}">${item.status}</span><p>${caption}</p><small class="muted">${tags}</small></div>`;
+					itemsEl.appendChild(div);
+				}
+			}
+
+			async function poll(id) {
+				const res = await fetch(`/batches/${id}`);
+				const batch = await res.json();
+				render(batch);
+				if (batch.status !== "done") setTimeout(() => poll(id), 500);
+				else submitBtn.disabled = false;
+			}
+
+			submitBtn.onclick = async () => {
+				if (selected.size === 0) {
+					statusEl.textContent = "Select at least one product image.";
+					return;
+				}
+				submitBtn.disabled = true;
+				statusEl.textContent = "Submitting…";
+				const body = {
+					products: [...selected].map((name) => ({ preset: name })),
+					platform: document.getElementById("platform").value,
+				};
+				const res = await fetch("/batches", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(body),
+				});
+				if (!res.ok) {
+					const err = await res.json();
+					statusEl.textContent = "Error: " + (err.error || res.status);
+					submitBtn.disabled = false;
+					return;
+				}
+				const { batchId } = await res.json();
+				poll(batchId);
+			};
+		</script>
+	</body>
+</html>
