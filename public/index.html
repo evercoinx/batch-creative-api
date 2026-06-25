@@ -133,6 +133,7 @@
 			const refSelected = new Set(["forest"]);
 
 			function renderThumbs(container, presets, set, max) {
+				const elByName = new Map();
 				for (const preset of presets) {
 					const el = document.createElement("div");
 					el.className = "thumb" + (set.has(preset.name) ? " selected" : "");
@@ -140,16 +141,17 @@
 					el.onclick = () => {
 						if (set.has(preset.name)) set.delete(preset.name);
 						else {
-							// References are capped at 2 — drop the oldest when a third is picked.
+							// Selection is capped at `max` — drop the oldest when one more is picked.
 							if (max && set.size >= max) {
 								const oldest = set.values().next().value;
 								set.delete(oldest);
-								container.children[presets.findIndex((p) => p.name === oldest)]?.classList.remove("selected");
+								elByName.get(oldest)?.classList.remove("selected");
 							}
 							set.add(preset.name);
 						}
 						el.classList.toggle("selected", set.has(preset.name));
 					};
+					elByName.set(preset.name, el);
 					container.appendChild(el);
 				}
 			}
