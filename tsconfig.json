@@ -8,7 +8,9 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "types": ["node"],
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true
   },
   "include": [".sandcastle/**/*.mts", "src/**/*.mts"]
 }
