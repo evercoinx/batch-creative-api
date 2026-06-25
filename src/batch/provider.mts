@@ -17,7 +17,7 @@ export type GeneratedImage = {
 // The single seam through which all image generation flows. Mock mode injects a
 // stub implementation; the real Gemini/OpenAI providers implement the same shape
 // so retry/failover logic above stays provider-agnostic.
-export interface ImageProvider {
+export type ImageProvider = {
 	readonly name: string;
 	generate(
 		product: ImageInput,
@@ -25,7 +25,7 @@ export interface ImageProvider {
 		styleSpec: string,
 		params: GenerateParams,
 	): Promise<GeneratedImage>;
-}
+};
 
 // Node system error codes that indicate a transient network failure worth a retry.
 const NETWORK_ERROR_CODES = new Set([

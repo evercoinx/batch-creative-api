@@ -104,7 +104,7 @@ describe("generateWithFailover", () => {
 				return image("after-timeout");
 			},
 		};
-		const result = await generateWithFailover(provider ? [provider] : [], PRODUCT, [], "s", PARAMS, {
+		const result = await generateWithFailover([provider], PRODUCT, [], "s", PARAMS, {
 			...FAST,
 			timeoutMs: 10,
 		});
