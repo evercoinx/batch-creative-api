@@ -75,4 +75,16 @@ describe("HTTP service", () => {
 		const html = await res.text();
 		expect(html).toContain("Batch Creative API");
 	});
+
+	it("demo page has all three sections and a public repo link", async () => {
+		const res = await fetch(`${baseUrl}/`);
+		const html = await res.text();
+		// Section 1 — interactive demo preloads both product and reference thumbnails.
+		expect(html).toContain("/data/product/");
+		expect(html).toContain("/data/reference/");
+		// Section 2 — the "how it was built" write-up.
+		expect(html.toLowerCase()).toContain("how it was built");
+		// Section 3 — link to the public GitHub repo.
+		expect(html).toContain("github.com/evercoinx/batch-creative-api");
+	});
 });

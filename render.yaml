@@ -1,0 +1,30 @@
+# Render deploy config — a single web service running the Batch Creative API.
+# Committed so the deployment is reproducible (PRD: "operator wants a committed
+# deploy config"). The author connects the repo in the Render dashboard, sets the
+# provider keys below as env vars, and Render builds + starts from this file.
+#
+# Ephemeral disk is acceptable: outputs/ regenerates on demand, the batch store
+# is in-memory, and a restart simply starts fresh (ADR 0001).
+services:
+  - type: web
+    name: batch-creative-api
+    runtime: node
+    plan: free
+    # Same scripts as local + CI, so deploy can't drift from package.json.
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Render sets PORT; the app reads it (defaults to 3000 locally).
+      - key: PORT
+        value: "3000"
+      # Provider keys — set as secrets in the Render dashboard, never committed.
+      # With neither present the service runs in mock mode (placeholder images,
+      # canned captions) so the live demo works without spending credits.
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
