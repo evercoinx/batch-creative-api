@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MockProvider } from "./mock-provider.mts";
-import { processBatch } from "./processor.mts";
 import type { OutputWriter } from "./outputs.mts";
-import type { ProcessOptions } from "./processor.mts";
+import { processBatch, type ProcessOptions } from "./processor.mts";
 import type { GenerateParams, GeneratedImage, ImageProvider } from "./provider.mts";
 import type { ImageInput, Platform } from "./schema.mts";
 import { deriveStyleSpec } from "./style.mts";
