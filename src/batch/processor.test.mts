@@ -1,14 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { MockProvider } from "./mock-provider.mts";
 import { processBatch } from "./processor.mts";
+import type { OutputWriter } from "./outputs.mts";
+import type { ProcessOptions } from "./processor.mts";
 import type { GenerateParams, GeneratedImage, ImageProvider } from "./provider.mts";
-import type { ResilienceOptions } from "./resilience.mts";
 import type { ImageInput, Platform } from "./schema.mts";
 import { deriveStyleSpec } from "./style.mts";
 import type { Batch } from "./types.mts";
 
-// No real backoff waiting, so the lifecycle tests stay fast.
-const FAST: ResilienceOptions = { sleep: async () => {}, random: () => 0 };
+// In-memory image sink: records what was written and returns a served-looking
+// URL, so the lifecycle tests never touch disk. No real backoff waiting either.
+const writeImage: OutputWriter = async (image, name) => `/outputs/${name}.${image.mimeType.split("/")[1]}`;
+const FAST: ProcessOptions = { sleep: async () => {}, random: () => 0, writeImage };
 
 function makeBatch(productCount: number, platform: Platform = "instagram"): Batch {
 	const references: ImageInput[] = [];
@@ -68,7 +71,25 @@ describe("processBatch", () => {
 		const post = batch.items[0]?.post;
 		expect(post?.platform).toBe("x");
 		expect(post?.meta.provider).toBe("mock");
-		expect(post?.imageUrl.startsWith("data:image/jpeg;base64,")).toBe(true);
+		// Image is persisted to outputs/ and surfaced as a served URL, keyed by
+		// batch id + item index.
+		expect(post?.imageUrl).toBe("/outputs/test-batch-0.jpeg");
+	});
+
+	it("reuses one style spec for every product image in the batch", async () => {
+		const batch = makeBatch(3);
+		batch.styleSpec = "shared batch style";
+		const seenSpecs: string[] = [];
+		const provider: ImageProvider = {
+			name: "spec-probe",
+			generate: async (_product, _references, styleSpec) => {
+				seenSpecs.push(styleSpec);
+				return image("ok");
+			},
+		};
+		await processBatch(batch, [provider], FAST);
+		expect(seenSpecs).toHaveLength(3);
+		expect(seenSpecs.every((spec) => spec === "shared batch style")).toBe(true);
 	});
 
 	it("sets each item running before it is done", async () => {

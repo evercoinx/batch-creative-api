@@ -1,6 +1,7 @@
 import express, { type ErrorRequestHandler, type Request, type Response } from "express";
 import { fileURLToPath } from "node:url";
 import { MAX_BODY_SIZE, MAX_CONCURRENT_BATCHES } from "./config.mts";
+import { OUTPUTS_DIR, OUTPUTS_URL_PREFIX } from "./batch/outputs.mts";
 import { processBatch } from "./batch/processor.mts";
 import type { ImageProvider } from "./batch/provider.mts";
 import { createProviders } from "./batch/providers/index.mts";
@@ -23,6 +24,7 @@ export function createApp(deps: AppDeps = {}): express.Express {
 	app.use(express.json({ limit: MAX_BODY_SIZE }));
 
 	app.use("/data", express.static(DATA_DIR));
+	app.use(OUTPUTS_URL_PREFIX, express.static(OUTPUTS_DIR));
 	app.use(express.static(PUBLIC_DIR));
 
 	app.post("/batches", (req: Request, res: Response) => {

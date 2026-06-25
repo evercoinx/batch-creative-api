@@ -16,8 +16,8 @@ export type ImageInput = z.infer<typeof imageInputSchema>;
 export const PLATFORMS = ["instagram", "x", "linkedin"] as const;
 export type Platform = (typeof PLATFORMS)[number];
 
-// References are accepted (and capped at 1–2) so the schema is forward-compatible
-// with the styling slice, but they are unused in this mock tracer bullet.
+// References are accepted (and capped at 1–2); the batch derives one style spec
+// from them and reuses it for every product image so the set stays consistent.
 export const createBatchSchema = z
 	.object({
 		products: z.array(imageInputSchema).min(1).max(MAX_PRODUCTS_PER_BATCH),

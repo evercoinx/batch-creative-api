@@ -2,6 +2,7 @@ coverage/
 dist/
 logs/
 node_modules/
+outputs/
 worktrees/
 
 .DS_Store

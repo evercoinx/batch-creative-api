@@ -47,6 +47,12 @@ describe("HTTP service", () => {
 		expect(batch.status).toBe("done");
 		expect(batch.items).toHaveLength(2);
 		expect(batch.items.every((item) => item.status === "done" && item.post)).toBe(true);
+
+		// Each post's image was written to outputs/ and is served as a fetchable URL.
+		const post = batch.items[0]?.post as { imageUrl: string } | undefined;
+		expect(post?.imageUrl.startsWith("/outputs/")).toBe(true);
+		const imageRes = await fetch(`${baseUrl}${post?.imageUrl}`);
+		expect(imageRes.status).toBe(200);
 	});
 
 	it("rejects a malformed body with 400", async () => {

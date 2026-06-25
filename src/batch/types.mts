@@ -2,8 +2,9 @@ import type { ImageInput, Platform } from "./schema.mts";
 
 export type ItemStatus = "pending" | "running" | "done" | "failed";
 
-// One generated post for a single product image. In mock mode the imageUrl
-// points at the placeholder sample; caption/hashtags/meta are canned.
+// One generated post for a single product image. imageUrl points at the styled
+// image written to outputs/ and served statically; in mock mode it is a bundled
+// sample and caption/hashtags/meta are canned.
 export type Post = {
 	imageUrl: string;
 	caption: string;
