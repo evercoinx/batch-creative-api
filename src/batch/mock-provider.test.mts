@@ -8,19 +8,18 @@ const product: ImageInput = { preset: "lamp" };
 const references: ImageInput[] = [];
 
 describe("MockProvider", () => {
+	const provider = new MockProvider();
+
 	it("returns exactly the platform's hashtagCount hashtags for every platform", async () => {
-		const provider = new MockProvider();
 		for (const platform of PLATFORMS) {
 			const params = PLATFORM_CONFIG[platform];
 			const image = await provider.generate(product, references, "style", params);
 			expect(image.hashtags).toHaveLength(params.hashtagCount);
-			// Hashtags carry no leading '#' and are non-empty.
 			expect(image.hashtags.every((tag) => tag.length > 0 && !tag.startsWith("#"))).toBe(true);
 		}
 	});
 
 	it("keeps the caption within the platform's captionMaxLength", async () => {
-		const provider = new MockProvider();
 		const params = PLATFORM_CONFIG.x; // tightest cap (280)
 		const image = await provider.generate(product, references, "style", params);
 		expect(image.caption.length).toBeLessThanOrEqual(params.captionMaxLength);
