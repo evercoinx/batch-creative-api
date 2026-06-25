@@ -1,14 +1,15 @@
 import express, { type ErrorRequestHandler, type Request, type Response } from "express";
 import { fileURLToPath } from "node:url";
 import { MAX_BODY_SIZE, MAX_CONCURRENT_BATCHES } from "./config.mts";
-import { generateMockPost } from "./batch/mock-generator.mts";
-import { processBatch, type PostGenerator } from "./batch/processor.mts";
+import { processBatch } from "./batch/processor.mts";
+import type { ImageProvider } from "./batch/provider.mts";
+import { createProviders } from "./batch/providers/index.mts";
 import { createBatchSchema } from "./batch/schema.mts";
 import { BatchStore } from "./batch/store.mts";
 
 export type AppDeps = {
 	store?: BatchStore;
-	generate?: PostGenerator;
+	providers?: ImageProvider[];
 };
 
 const DATA_DIR = fileURLToPath(new URL("../data", import.meta.url));
@@ -16,7 +17,7 @@ const PUBLIC_DIR = fileURLToPath(new URL("../public", import.meta.url));
 
 export function createApp(deps: AppDeps = {}): express.Express {
 	const store = deps.store ?? new BatchStore();
-	const generate = deps.generate ?? generateMockPost;
+	const providers = deps.providers ?? createProviders();
 
 	const app = express();
 	app.use(express.json({ limit: MAX_BODY_SIZE }));
@@ -41,7 +42,7 @@ export function createApp(deps: AppDeps = {}): express.Express {
 
 		const batch = store.create(parsed.data);
 		// Fire-and-forget: the caller gets the id immediately and polls for progress.
-		void processBatch(batch, generate);
+		void processBatch(batch, providers);
 		res.status(202).json({ batchId: batch.id });
 	});
 

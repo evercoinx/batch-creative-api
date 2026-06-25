@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { CreateBatchRequest } from "./schema.mts";
+import { deriveStyleSpec } from "./style.mts";
 import type { Batch, BatchView } from "./types.mts";
 
 // In-memory, single-process batch store. Sufficient for a showcase demo; the
@@ -8,10 +9,13 @@ export class BatchStore {
 	readonly #batches = new Map<string, Batch>();
 
 	create(request: CreateBatchRequest): Batch {
+		const references = request.references ?? [];
 		const batch: Batch = {
 			id: randomUUID(),
 			status: "pending",
 			platform: request.platform,
+			references,
+			styleSpec: deriveStyleSpec(references),
 			items: request.products.map((product) => ({ product, status: "pending" })),
 			createdAt: Date.now(),
 		};

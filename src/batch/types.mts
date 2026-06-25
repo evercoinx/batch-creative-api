@@ -25,6 +25,10 @@ export type Batch = {
 	id: string;
 	status: BatchStatus;
 	platform: Platform;
+	// Reference image(s) and the one style spec extracted from them, reused for
+	// every product image so the batch stays visually consistent.
+	references: ImageInput[];
+	styleSpec: string;
 	items: BatchItem[];
 	createdAt: number;
 };

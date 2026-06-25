@@ -5,6 +5,7 @@
     "moduleResolution": "nodenext",
     "lib": ["esnext", "dom"],
     "strict": true,
+    "skipLibCheck": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "types": ["node"],

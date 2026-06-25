@@ -22,6 +22,6 @@ export const MAX_BODY_SIZE = process.env.MAX_BODY_SIZE ?? "2mb";
 // Bounded fan-out when generating posts for the product images in one batch.
 export const ITEM_CONCURRENCY = intFromEnv("ITEM_CONCURRENCY", 4);
 
-// Mock mode is the default until provider keys are supplied. This slice only
-// implements mock mode; the keys are read here so the seam exists.
+// Mock mode is the default until provider keys are supplied. With neither key
+// the provider factory selects the MockProvider; this flag is for logging.
 export const MOCK_MODE = !process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY;
