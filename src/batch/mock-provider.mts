@@ -29,7 +29,13 @@ export class MockProvider implements ImageProvider {
 		const preset = "preset" in product ? product.preset : FALLBACK_PRESET;
 		const imageBytes = await readFile(presetPath(preset));
 		const subject = describeProduct(product);
-		const hashtags = ["batchcreative", "mock", "post", subject].slice(0, params.hashtagCount);
+		// Base pool plus numbered fillers, so the mock can satisfy any platform's
+		// hashtagCount (instagram asks for 5) rather than capping at the pool size.
+		const pool = ["batchcreative", "mock", "post", subject];
+		while (pool.length < params.hashtagCount) {
+			pool.push(`tag${pool.length + 1}`);
+		}
+		const hashtags = pool.slice(0, params.hashtagCount);
 		return {
 			imageBytes,
 			mimeType: "image/jpeg",
