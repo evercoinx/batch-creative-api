@@ -87,4 +87,17 @@ describe("HTTP service", () => {
 		// Section 3 — link to the public GitHub repo.
 		expect(html).toContain("github.com/evercoinx/batch-creative-api");
 	});
+
+	it("presents the three sections as an ARIA tablist with three tabs", async () => {
+		const res = await fetch(`${baseUrl}/`);
+		const html = await res.text();
+		// A tab bar wires the ARIA tab pattern at baseline.
+		expect(html).toContain('role="tablist"');
+		expect((html.match(/role="tab"/g) ?? []).length).toBe(3);
+		expect((html.match(/role="tabpanel"/g) ?? []).length).toBe(3);
+		// The page opens on the Demo tab.
+		expect(html).toMatch(/role="tab"[^>]*aria-selected="true"/);
+		// Numeric prefixes are dropped from the section headings now the tabs convey order.
+		expect(html).not.toContain("1 · The product");
+	});
 });
