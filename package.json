@@ -15,7 +15,7 @@
 	"type": "module",
 	"main": "./src/index.mts",
 	"scripts": {
-		"start": "node --experimental-strip-types src/index.mts",
+		"start": "node --env-file=.env --experimental-strip-types src/index.mts",
 		"loop": "npx tsx .sandcastle/main.mts",
 		"lint": "biome lint .",
 		"format": "biome format --write .",
