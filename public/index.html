@@ -162,7 +162,7 @@
 
 			<h3>How AI was used</h3>
 			<p>
-				Built with Claude (Opus 4.8/Sonnet 4.6) driving a test-first red-green-refactor loop: each slice
+				Built with Claude (Opus 4.8/Sonnet 4.6) and <a href="https://github.com/mattpocock/sandcastle" target="_blank" rel="noopener">Sandcastle AI framework</a> driving a test-first red-green-refactor loop: each slice
 				started with a failing test, then the implementation to make it pass, then
 				a refactor pass. AI acts as the runtime — Gemini (Imagen +
 				gemini-2.5-flash) is the primary image/caption provider with OpenAI
@@ -171,10 +171,10 @@
 
 			<h3>Toolset</h3>
 			<ul>
-				<li><strong>Runtime:</strong> Node 26 running <code>.mts</code> via <code>--experimental-strip-types</code></li>
-				<li><strong>Web:</strong> Express 5 + zod for request validation</li>
+				<li><strong>Runtime:</strong> TypeScript/Node 26 running modules</li>
+				<li><strong>Web:</strong> Express 5</li>
 				<li><strong>Providers:</strong> <code>@google/genai</code> (Gemini), <code>openai</code> SDKs behind one seam</li>
-				<li><strong>Tests:</strong> vitest — retry/failover/lifecycle covered with a scripted mock provider, no network</li>
+				<li><strong>Tests:</strong> vitest — retry/failover/lifecycle covered with a scripted mock provider</li>
 				<li><strong>Lint/format:</strong> Biome (config + scripts + lefthook pre-commit + CI gate)</li>
 				<li><strong>Deploy:</strong> Render web service via committed <code>render.yaml</code> with an ephemeral disk for <code>outputs</code></li>
 			</ul>
