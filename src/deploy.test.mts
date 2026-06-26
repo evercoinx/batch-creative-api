@@ -19,10 +19,37 @@ describe("Render deploy config", () => {
 		expect(yaml).toContain("OPENAI_API_KEY");
 	});
 
+	it("render.yaml pins the project's standard Node 26 runtime", () => {
+		const yaml = readFileSync(root("render.yaml"), "utf8");
+		expect(yaml).toMatch(/NODE_VERSION[\s\S]*?value:\s*"26"/);
+	});
+
+	it("render.yaml supplies GEMINI_API_KEY as a non-synced dashboard secret", () => {
+		const yaml = readFileSync(root("render.yaml"), "utf8");
+		// The key must never be committed: it carries `sync: false` so Render
+		// prompts for it in the dashboard rather than reading a committed value.
+		expect(yaml).toMatch(/key:\s*GEMINI_API_KEY[\s\S]*?sync:\s*false/);
+		expect(yaml).not.toMatch(/GEMINI_API_KEY[\s\S]*?value:/);
+	});
+
+	it("CI runs on Node 26 to match the deploy runtime", () => {
+		const ci = readFileSync(root(".github/workflows/ci.yml"), "utf8");
+		expect(ci).toMatch(/node-version:\s*26/);
+	});
+
 	it("README documents the deploy steps and required env vars", () => {
 		const readme = readFileSync(root("README.md"), "utf8");
 		expect(readme).toContain("render.yaml");
 		expect(readme).toContain("GEMINI_API_KEY");
 		expect(readme).toContain("OPENAI_API_KEY");
+	});
+
+	it("README documents the known limitations of the live demo", () => {
+		const readme = readFileSync(root("README.md"), "utf8").toLowerCase();
+		// Free-tier cold start, presets-only demo, and the unsupported url input
+		// (PRD user story 20: the next person shouldn't re-derive these).
+		expect(readme).toContain("cold start");
+		expect(readme).toContain("preset");
+		expect(readme).toContain("url");
 	});
 });

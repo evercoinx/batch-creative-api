@@ -16,8 +16,9 @@ services:
     healthCheckPath: /
     autoDeploy: true
     envVars:
+      # Project-standard Node version; kept in lockstep with CI and local.
       - key: NODE_VERSION
-        value: "22"
+        value: "26"
       # Render sets PORT; the app reads it (defaults to 3000 locally).
       - key: PORT
         value: "3000"
