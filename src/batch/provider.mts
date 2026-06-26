@@ -19,6 +19,10 @@ export type GeneratedImage = {
 // so retry/failover logic above stays provider-agnostic.
 export type ImageProvider = {
 	readonly name: string;
+	// Extract one text style spec for a batch from its reference images. Runs once
+	// per batch (the result is reused for every product image), through the same
+	// retry/failover path as generate. Zero references yields the neutral fallback.
+	describeStyle(references: ImageInput[]): Promise<string>;
 	generate(
 		product: ImageInput,
 		references: ImageInput[],

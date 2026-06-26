@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { CreateBatchRequest } from "./schema.mts";
-import { deriveStyleSpec } from "./style.mts";
+import { NEUTRAL_STYLE_SPEC } from "./style.mts";
 import type { Batch, BatchView } from "./types.mts";
 
 // In-memory, single-process batch store. Sufficient for a showcase demo; the
@@ -15,7 +15,9 @@ export class BatchStore {
 			status: "pending",
 			platform: request.platform,
 			references,
-			styleSpec: deriveStyleSpec(references),
+			// Placeholder spec: real per-batch extraction (describeStyle on the
+			// provider seam) is wired into the processor in a later slice (PRD #10).
+			styleSpec: NEUTRAL_STYLE_SPEC,
 			items: request.products.map((product) => ({ product, status: "pending" })),
 			createdAt: Date.now(),
 		};

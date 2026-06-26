@@ -33,6 +33,11 @@ export type FailoverResult = {
 	provider: string;
 };
 
+export type StyleFailoverResult = {
+	styleSpec: string;
+	provider: string;
+};
+
 function resolveOptions(options: ResilienceOptions): ResolvedOptions {
 	return { ...DEFAULT_OPTIONS, ...options };
 }
@@ -58,19 +63,16 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
 	return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
-type GenerateArgs = [ImageInput, ImageInput[], string, GenerateParams];
-
 // One provider, up to maxAttempts: retry transient failures with backoff, fail
 // fast on anything non-transient, and give up once the attempt budget is spent.
-async function callWithRetry(
-	provider: ImageProvider,
-	args: GenerateArgs,
+async function attemptWithRetry<T>(
+	operation: () => Promise<T>,
 	opts: ResolvedOptions,
-): Promise<GeneratedImage> {
+): Promise<T> {
 	let lastError: unknown;
 	for (let attempt = 1; attempt <= opts.maxAttempts; attempt++) {
 		try {
-			return await withTimeout(provider.generate(...args), opts.timeoutMs);
+			return await withTimeout(operation(), opts.timeoutMs);
 		} catch (error) {
 			lastError = error;
 			if (!isTransientError(error) || attempt === opts.maxAttempts) {
@@ -85,7 +87,28 @@ async function callWithRetry(
 
 // Try each provider in order with its own retry budget. The first to succeed
 // wins; if the primary exhausts its retries we fail over to the next. If every
-// provider fails, the last error propagates so the item records why.
+// provider fails, the last error propagates so the caller records why. Shared by
+// image generation and style extraction so both inherit identical semantics.
+async function withProviderFailover<T>(
+	providers: ImageProvider[],
+	operation: (provider: ImageProvider) => Promise<T>,
+	opts: ResolvedOptions,
+): Promise<{ value: T; provider: string }> {
+	if (providers.length === 0) {
+		throw new Error("no image providers configured");
+	}
+	let lastError: unknown;
+	for (const provider of providers) {
+		try {
+			const value = await attemptWithRetry(() => operation(provider), opts);
+			return { value, provider: provider.name };
+		} catch (error) {
+			lastError = error;
+		}
+	}
+	throw lastError;
+}
+
 export async function generateWithFailover(
 	providers: ImageProvider[],
 	product: ImageInput,
@@ -94,19 +117,27 @@ export async function generateWithFailover(
 	params: GenerateParams,
 	options: ResilienceOptions = {},
 ): Promise<FailoverResult> {
-	if (providers.length === 0) {
-		throw new Error("no image providers configured");
-	}
 	const opts = resolveOptions(options);
-	const args: GenerateArgs = [product, references, styleSpec, params];
-	let lastError: unknown;
-	for (const provider of providers) {
-		try {
-			const image = await callWithRetry(provider, args, opts);
-			return { image, provider: provider.name };
-		} catch (error) {
-			lastError = error;
-		}
-	}
-	throw lastError;
+	const { value, provider } = await withProviderFailover(
+		providers,
+		(p) => p.generate(product, references, styleSpec, params),
+		opts,
+	);
+	return { image: value, provider };
+}
+
+// Extract one batch style spec through the same retry/failover path as generate,
+// so a transient vision failure retries and a dead primary fails over.
+export async function describeStyleWithFailover(
+	providers: ImageProvider[],
+	references: ImageInput[],
+	options: ResilienceOptions = {},
+): Promise<StyleFailoverResult> {
+	const opts = resolveOptions(options);
+	const { value, provider } = await withProviderFailover(
+		providers,
+		(p) => p.describeStyle(references),
+		opts,
+	);
+	return { styleSpec: value, provider };
 }

@@ -1,7 +1,14 @@
-import { GoogleGenAI } from "@google/genai";
+import { createPartFromBase64, createPartFromText, createUserContent, GoogleGenAI } from "@google/genai";
 import type { GenerateParams, GeneratedImage, ImageProvider } from "../provider.mts";
+import { resolveImageInput } from "../resolve-input.mts";
 import type { ImageInput } from "../schema.mts";
-import { captionPrompt, imagePrompt, parseCaptionResponse } from "./prompt.mts";
+import { NEUTRAL_STYLE_SPEC } from "../style.mts";
+import {
+	captionPrompt,
+	imagePrompt,
+	parseCaptionResponse,
+	STYLE_DESCRIPTION_PROMPT,
+} from "./prompt.mts";
 
 const IMAGE_MODEL = "imagen-4.0-generate-001";
 const TEXT_MODEL = "gemini-2.5-flash";
@@ -16,6 +23,30 @@ export class GeminiProvider implements ImageProvider {
 
 	constructor(apiKey: string) {
 		this.#client = new GoogleGenAI({ apiKey });
+	}
+
+	// Resolve each reference to bytes and ask the vision model for one style spec
+	// describing palette, lighting, mood, and composition. Zero references skips
+	// the model entirely and returns the shared neutral fallback.
+	async describeStyle(references: ImageInput[]): Promise<string> {
+		if (references.length === 0) {
+			return NEUTRAL_STYLE_SPEC;
+		}
+		const imageParts = await Promise.all(
+			references.map(async (reference) => {
+				const { bytes, mimeType } = await resolveImageInput(reference);
+				return createPartFromBase64(bytes.toString("base64"), mimeType);
+			}),
+		);
+		const response = await this.#client.models.generateContent({
+			model: TEXT_MODEL,
+			contents: createUserContent([createPartFromText(STYLE_DESCRIPTION_PROMPT), ...imageParts]),
+		});
+		const styleSpec = response.text?.trim();
+		if (!styleSpec) {
+			throw new Error("Gemini returned no style description");
+		}
+		return styleSpec;
 	}
 
 	async generate(

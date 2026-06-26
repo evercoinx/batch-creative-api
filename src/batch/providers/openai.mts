@@ -1,7 +1,14 @@
 import OpenAI from "openai";
 import type { GenerateParams, GeneratedImage, ImageProvider } from "../provider.mts";
+import { resolveImageInput } from "../resolve-input.mts";
 import type { ImageInput } from "../schema.mts";
-import { captionPrompt, imagePrompt, parseCaptionResponse } from "./prompt.mts";
+import { NEUTRAL_STYLE_SPEC } from "../style.mts";
+import {
+	captionPrompt,
+	imagePrompt,
+	parseCaptionResponse,
+	STYLE_DESCRIPTION_PROMPT,
+} from "./prompt.mts";
 
 const IMAGE_MODEL = "gpt-image-1";
 const TEXT_MODEL = "gpt-4o-mini";
@@ -25,6 +32,37 @@ export class OpenAIProvider implements ImageProvider {
 
 	constructor(apiKey: string) {
 		this.#client = new OpenAI({ apiKey });
+	}
+
+	// Resolve each reference to bytes and ask the vision chat model for one style
+	// spec. Zero references skips the model and returns the shared neutral fallback.
+	async describeStyle(references: ImageInput[]): Promise<string> {
+		if (references.length === 0) {
+			return NEUTRAL_STYLE_SPEC;
+		}
+		const imageParts = await Promise.all(
+			references.map(async (reference) => {
+				const { bytes, mimeType } = await resolveImageInput(reference);
+				return {
+					type: "image_url" as const,
+					image_url: { url: `data:${mimeType};base64,${bytes.toString("base64")}` },
+				};
+			}),
+		);
+		const chat = await this.#client.chat.completions.create({
+			model: TEXT_MODEL,
+			messages: [
+				{
+					role: "user",
+					content: [{ type: "text" as const, text: STYLE_DESCRIPTION_PROMPT }, ...imageParts],
+				},
+			],
+		});
+		const styleSpec = chat.choices[0]?.message?.content?.trim();
+		if (!styleSpec) {
+			throw new Error("OpenAI returned no style description");
+		}
+		return styleSpec;
 	}
 
 	async generate(

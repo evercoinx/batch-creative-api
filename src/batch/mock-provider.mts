@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { presetPath } from "../presets.mts";
 import type { GenerateParams, GeneratedImage, ImageProvider } from "./provider.mts";
 import type { ImageInput } from "./schema.mts";
+import { NEUTRAL_STYLE_SPEC } from "./style.mts";
 
 // A base64 product (or a bare URL we can't fetch in mock mode) has no bundled
 // bytes, so it falls back to this sample image.
@@ -19,6 +20,15 @@ function describeProduct(product: ImageInput): string {
 // provider keys are set, so the demo and CI run without spending credits.
 export class MockProvider implements ImageProvider {
 	readonly name = "mock";
+
+	// Canned spec so mock mode and existing tests keep working without a vision
+	// model; empty references fall back to the shared neutral spec.
+	async describeStyle(references: ImageInput[]): Promise<string> {
+		if (references.length === 0) {
+			return NEUTRAL_STYLE_SPEC;
+		}
+		return "Match the palette, lighting, mood, and composition of the supplied reference image(s).";
+	}
 
 	async generate(
 		product: ImageInput,

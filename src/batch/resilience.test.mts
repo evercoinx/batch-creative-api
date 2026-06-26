@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { GenerateParams, GeneratedImage, ImageProvider } from "./provider.mts";
-import { generateWithFailover, type ResilienceOptions } from "./resilience.mts";
+import {
+	describeStyleWithFailover,
+	generateWithFailover,
+	type ResilienceOptions,
+} from "./resilience.mts";
 import type { ImageInput } from "./schema.mts";
 
 const PRODUCT: ImageInput = { preset: "lamp" };
@@ -27,6 +31,10 @@ class ScriptedProvider implements ImageProvider {
 		private readonly script: Array<Error | GeneratedImage>,
 	) {}
 
+	async describeStyle(): Promise<string> {
+		return "scripted-style";
+	}
+
 	async generate(): Promise<GeneratedImage> {
 		const outcome = this.script[this.calls] ?? this.script[this.script.length - 1];
 		this.calls++;
@@ -34,6 +42,29 @@ class ScriptedProvider implements ImageProvider {
 			throw outcome;
 		}
 		return outcome as GeneratedImage;
+	}
+}
+
+// Like ScriptedProvider but for describeStyle: each scripted outcome is an error
+// to throw or the style spec string to return, so style failover can be proven.
+class ScriptedStyleProvider implements ImageProvider {
+	calls = 0;
+	constructor(
+		readonly name: string,
+		private readonly script: Array<Error | string>,
+	) {}
+
+	async describeStyle(): Promise<string> {
+		const outcome = this.script[this.calls] ?? this.script[this.script.length - 1];
+		this.calls++;
+		if (outcome instanceof Error) {
+			throw outcome;
+		}
+		return outcome as string;
+	}
+
+	async generate(): Promise<GeneratedImage> {
+		throw new Error("not used");
 	}
 }
 
@@ -95,6 +126,9 @@ describe("generateWithFailover", () => {
 		let calls = 0;
 		const provider: ImageProvider = {
 			name: "slow",
+			async describeStyle() {
+				return "slow-style";
+			},
 			async generate() {
 				calls++;
 				if (calls === 1) {
@@ -122,5 +156,31 @@ describe("generateWithFailover", () => {
 
 	it("throws when no providers are configured", async () => {
 		await expect(run([])).rejects.toThrow("no image providers configured");
+	});
+});
+
+describe("describeStyleWithFailover", () => {
+	it("retries a transient error then succeeds on the same provider", async () => {
+		const provider = new ScriptedStyleProvider("primary", [httpError(503), "warm palette"]);
+		const result = await describeStyleWithFailover([provider], [], FAST);
+		expect(result.styleSpec).toBe("warm palette");
+		expect(result.provider).toBe("primary");
+		expect(provider.calls).toBe(2);
+	});
+
+	it("fails over to the secondary when the primary exhausts its retries", async () => {
+		const primary = new ScriptedStyleProvider("primary", [httpError(503)]);
+		const secondary = new ScriptedStyleProvider("secondary", ["fallback style"]);
+		const result = await describeStyleWithFailover([primary, secondary], [], FAST);
+		expect(result.provider).toBe("secondary");
+		expect(result.styleSpec).toBe("fallback style");
+		expect(primary.calls).toBe(3);
+		expect(secondary.calls).toBe(1);
+	});
+
+	it("throws when no providers are configured", async () => {
+		await expect(describeStyleWithFailover([], [], FAST)).rejects.toThrow(
+			"no image providers configured",
+		);
 	});
 });

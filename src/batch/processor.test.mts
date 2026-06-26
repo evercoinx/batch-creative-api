@@ -4,7 +4,7 @@ import type { OutputWriter } from "./outputs.mts";
 import { processBatch, type ProcessOptions } from "./processor.mts";
 import type { GenerateParams, GeneratedImage, ImageProvider } from "./provider.mts";
 import type { ImageInput, Platform } from "./schema.mts";
-import { deriveStyleSpec } from "./style.mts";
+import { NEUTRAL_STYLE_SPEC } from "./style.mts";
 import type { Batch } from "./types.mts";
 
 // In-memory image sink: records what was written and returns a served-looking
@@ -19,7 +19,7 @@ function makeBatch(productCount: number, platform: Platform = "instagram"): Batc
 		status: "pending",
 		platform,
 		references,
-		styleSpec: deriveStyleSpec(references),
+		styleSpec: NEUTRAL_STYLE_SPEC,
 		items: Array.from({ length: productCount }, (_, i) => ({
 			product: { preset: i % 2 === 0 ? "lamp" : "phone" } as ImageInput,
 			status: "pending",
@@ -42,6 +42,10 @@ class StubProvider implements ImageProvider {
 		readonly name: string,
 		private readonly handler: (product: ImageInput) => GeneratedImage,
 	) {}
+
+	async describeStyle(): Promise<string> {
+		return "stub-style";
+	}
 
 	async generate(product: ImageInput): Promise<GeneratedImage> {
 		return this.handler(product);
@@ -81,6 +85,7 @@ describe("processBatch", () => {
 		const seenSpecs: string[] = [];
 		const provider: ImageProvider = {
 			name: "spec-probe",
+			describeStyle: async () => "probe-style",
 			generate: async (_product, _references, styleSpec) => {
 				seenSpecs.push(styleSpec);
 				return image("ok");
