@@ -10,8 +10,9 @@ failover (Gemini → OpenAI), and a single style spec extracted once from the
 references keep every output consistent, while one failed item never sinks the
 whole batch. Content is generated only, never published to a real network.
 
-See `CONTEXT.md` for the domain glossary and `docs/adr/0001` for the
-architecture decisions.
+See `CONTEXT.md` for the domain glossary and `docs/adr/` for the architecture
+decisions (`0001` async batch API + failover, `0002` style consistency via a
+shared text spec).
 
 ## Quick start
 

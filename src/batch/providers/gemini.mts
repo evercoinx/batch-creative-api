@@ -49,6 +49,9 @@ export class GeminiProvider implements ImageProvider {
 		return styleSpec;
 	}
 
+	// Imagen 4 is text-to-image only: references shape the output solely through
+	// the shared styleSpec, so `references` is unused here. The image-to-image
+	// upgrade path is recorded in ADR 0002.
 	async generate(
 		product: ImageInput,
 		_references: ImageInput[],
