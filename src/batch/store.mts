@@ -18,7 +18,10 @@ export class BatchStore {
 			// style spec (describeStyle on the provider seam) once before item
 			// fan-out, so the HTTP create response is never blocked on it (PRD #10).
 			styleSpec: "",
-			items: request.products.map((product) => ({ product, status: "pending" })),
+			items: request.products.map((product) => ({
+				product,
+				status: "pending",
+			})),
 			createdAt: Date.now(),
 		};
 		this.#batches.set(batch.id, batch);
@@ -47,7 +50,11 @@ export class BatchStore {
 			status: batch.status,
 			platform: batch.platform,
 			error: batch.error,
-			items: batch.items.map(({ status, post, error }) => ({ status, post, error })),
+			items: batch.items.map(({ status, post, error }) => ({
+				status,
+				post,
+				error,
+			})),
 		};
 	}
 }

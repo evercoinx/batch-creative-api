@@ -1,6 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { presetPath } from "../presets.mts";
-import type { GenerateParams, GeneratedImage, ImageProvider } from "./provider.mts";
+import type {
+	GeneratedImage,
+	GenerateParams,
+	ImageProvider,
+} from "./provider.mts";
 import type { ImageInput } from "./schema.mts";
 import { NEUTRAL_STYLE_SPEC } from "./style.mts";
 
@@ -52,7 +56,10 @@ export class MockProvider implements ImageProvider {
 		return {
 			imageBytes,
 			mimeType: "image/jpeg",
-			caption: `A mock post for ${subject}${styled}.`.slice(0, params.captionMaxLength),
+			caption: `A mock post for ${subject}${styled}.`.slice(
+				0,
+				params.captionMaxLength,
+			),
 			hashtags,
 		};
 	}

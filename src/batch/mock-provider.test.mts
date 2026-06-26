@@ -14,9 +14,16 @@ describe("MockProvider", () => {
 	it("returns exactly the platform's hashtagCount hashtags for every platform", async () => {
 		for (const platform of PLATFORMS) {
 			const params = PLATFORM_CONFIG[platform];
-			const image = await provider.generate(product, references, "style", params);
+			const image = await provider.generate(
+				product,
+				references,
+				"style",
+				params,
+			);
 			expect(image.hashtags).toHaveLength(params.hashtagCount);
-			expect(image.hashtags.every((tag) => tag.length > 0 && !tag.startsWith("#"))).toBe(true);
+			expect(
+				image.hashtags.every((tag) => tag.length > 0 && !tag.startsWith("#")),
+			).toBe(true);
 		}
 	});
 

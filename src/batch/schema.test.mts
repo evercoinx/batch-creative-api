@@ -33,7 +33,9 @@ describe("createBatchSchema", () => {
 	});
 
 	it("rejects an unknown preset name", () => {
-		const result = createBatchSchema.safeParse({ products: [{ preset: "nope" }] });
+		const result = createBatchSchema.safeParse({
+			products: [{ preset: "nope" }],
+		});
 		expect(result.success).toBe(false);
 	});
 
@@ -55,7 +57,11 @@ describe("createBatchSchema", () => {
 	it("rejects more than two reference images", () => {
 		const result = createBatchSchema.safeParse({
 			products: [{ preset: "lamp" }],
-			references: [{ preset: "forest" }, { preset: "mars" }, { preset: "skytower" }],
+			references: [
+				{ preset: "forest" },
+				{ preset: "mars" },
+				{ preset: "skytower" },
+			],
 		});
 		expect(result.success).toBe(false);
 	});

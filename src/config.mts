@@ -24,4 +24,5 @@ export const ITEM_CONCURRENCY = intFromEnv("ITEM_CONCURRENCY", 4);
 
 // Mock mode is the default until provider keys are supplied. With neither key
 // the provider factory selects the MockProvider; this flag is for logging.
-export const MOCK_MODE = !process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY;
+export const MOCK_MODE =
+	!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY;

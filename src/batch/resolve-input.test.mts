@@ -12,7 +12,9 @@ describe("resolveImageInput", () => {
 
 	it("round-trips an inline base64 input to the original bytes", async () => {
 		const original = await readFile(presetPath("forest"));
-		const { bytes } = await resolveImageInput({ base64: original.toString("base64") });
+		const { bytes } = await resolveImageInput({
+			base64: original.toString("base64"),
+		});
 		expect(Buffer.compare(bytes, original)).toBe(0);
 	});
 
@@ -25,8 +27,8 @@ describe("resolveImageInput", () => {
 	});
 
 	it("throws a documented error for a url input", async () => {
-		await expect(resolveImageInput({ url: "https://example.com/x.jpg" })).rejects.toThrow(
-			"url inputs not yet supported",
-		);
+		await expect(
+			resolveImageInput({ url: "https://example.com/x.jpg" }),
+		).rejects.toThrow("url inputs not yet supported");
 	});
 });

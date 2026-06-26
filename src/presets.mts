@@ -14,7 +14,10 @@ const PRESET_FILES = {
 
 export type PresetName = keyof typeof PRESET_FILES;
 
-export const PRESET_NAMES = Object.keys(PRESET_FILES) as [PresetName, ...PresetName[]];
+export const PRESET_NAMES = Object.keys(PRESET_FILES) as [
+	PresetName,
+	...PresetName[],
+];
 
 export function isPresetName(value: string): value is PresetName {
 	return Object.hasOwn(PRESET_FILES, value);

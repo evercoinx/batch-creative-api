@@ -1,5 +1,14 @@
-import { createPartFromBase64, createPartFromText, createUserContent, GoogleGenAI } from "@google/genai";
-import type { GenerateParams, GeneratedImage, ImageProvider } from "../provider.mts";
+import {
+	createPartFromBase64,
+	createPartFromText,
+	createUserContent,
+	GoogleGenAI,
+} from "@google/genai";
+import type {
+	GeneratedImage,
+	GenerateParams,
+	ImageProvider,
+} from "../provider.mts";
 import { resolveImageInput } from "../resolve-input.mts";
 import type { ImageInput } from "../schema.mts";
 import { NEUTRAL_STYLE_SPEC } from "../style.mts";
@@ -40,7 +49,10 @@ export class GeminiProvider implements ImageProvider {
 		);
 		const response = await this.#client.models.generateContent({
 			model: TEXT_MODEL,
-			contents: createUserContent([createPartFromText(STYLE_DESCRIPTION_PROMPT), ...imageParts]),
+			contents: createUserContent([
+				createPartFromText(STYLE_DESCRIPTION_PROMPT),
+				...imageParts,
+			]),
 		});
 		const styleSpec = response.text?.trim();
 		if (!styleSpec) {
@@ -74,7 +86,10 @@ export class GeminiProvider implements ImageProvider {
 			model: TEXT_MODEL,
 			contents: captionPrompt(product, styleSpec, params),
 		});
-		const { caption, hashtags } = parseCaptionResponse(textResponse.text ?? "", params);
+		const { caption, hashtags } = parseCaptionResponse(
+			textResponse.text ?? "",
+			params,
+		);
 
 		return { imageBytes, mimeType, caption, hashtags };
 	}

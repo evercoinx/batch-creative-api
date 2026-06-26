@@ -1,0 +1,6 @@
+pre-commit:
+  commands:
+    biome-check:
+      glob: "*.{js,mjs,cjs,ts,mts,cts,jsx,tsx,json,jsonc,css,html}"
+      run: npx biome check --no-errors-on-unmatched {staged_files}
+      fail_text: "Biome found lint/format violations. Run `npm run check:write` to fix, then re-stage."

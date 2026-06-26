@@ -57,7 +57,13 @@ async function processItem(
 			PLATFORM_CONFIG[batch.platform],
 			options,
 		);
-		item.post = await buildPost(image, batch.platform, provider, `${batch.id}-${index}`, writeImage);
+		item.post = await buildPost(
+			image,
+			batch.platform,
+			provider,
+			`${batch.id}-${index}`,
+			writeImage,
+		);
 		item.status = "done";
 	} catch (error) {
 		// Both providers exhausted their retries — record the last error and move
@@ -85,7 +91,11 @@ export async function processBatch(
 	// failover, fail the whole batch fast — every item shares this spec, so there
 	// is nothing to generate against without it.
 	try {
-		const { styleSpec } = await describeStyleWithFailover(providers, batch.references, resilience);
+		const { styleSpec } = await describeStyleWithFailover(
+			providers,
+			batch.references,
+			resilience,
+		);
 		batch.styleSpec = styleSpec;
 	} catch (error) {
 		batch.error = errorMessage(error);
@@ -101,7 +111,14 @@ export async function processBatch(
 		workers.push(
 			(async () => {
 				for (const [index, item] of queue) {
-					await processItem(index, item, batch, providers, resilience, writeImage);
+					await processItem(
+						index,
+						item,
+						batch,
+						providers,
+						resilience,
+						writeImage,
+					);
 				}
 			})(),
 		);

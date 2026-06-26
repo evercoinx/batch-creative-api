@@ -1,18 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { MockProvider } from "./mock-provider.mts";
 import type { OutputWriter } from "./outputs.mts";
-import { processBatch, type ProcessOptions } from "./processor.mts";
-import type { GenerateParams, GeneratedImage, ImageProvider } from "./provider.mts";
+import { type ProcessOptions, processBatch } from "./processor.mts";
+import type { GeneratedImage, ImageProvider } from "./provider.mts";
 import type { ImageInput, Platform } from "./schema.mts";
 import { NEUTRAL_STYLE_SPEC } from "./style.mts";
 import type { Batch } from "./types.mts";
 
 // In-memory image sink: records what was written and returns a served-looking
 // URL, so the lifecycle tests never touch disk. No real backoff waiting either.
-const writeImage: OutputWriter = async (image, name) => `/outputs/${name}.${image.mimeType.split("/")[1]}`;
-const FAST: ProcessOptions = { sleep: async () => {}, random: () => 0, writeImage };
+const writeImage: OutputWriter = async (image, name) =>
+	`/outputs/${name}.${image.mimeType.split("/")[1]}`;
+const FAST: ProcessOptions = {
+	sleep: async () => {},
+	random: () => 0,
+	writeImage,
+};
 
-function makeBatch(productCount: number, platform: Platform = "instagram"): Batch {
+function makeBatch(
+	productCount: number,
+	platform: Platform = "instagram",
+): Batch {
 	const references: ImageInput[] = [];
 	return {
 		id: "test-batch",
@@ -29,7 +37,12 @@ function makeBatch(productCount: number, platform: Platform = "instagram"): Batc
 }
 
 function image(caption: string): GeneratedImage {
-	return { imageBytes: new Uint8Array([1, 2, 3]), mimeType: "image/png", caption, hashtags: [] };
+	return {
+		imageBytes: new Uint8Array([1, 2, 3]),
+		mimeType: "image/png",
+		caption,
+		hashtags: [],
+	};
 }
 
 function httpError(status: number): Error {
@@ -100,7 +113,9 @@ describe("processBatch", () => {
 		expect(describeCalls).toBe(1);
 		expect(batch.styleSpec).toBe("extracted batch style");
 		expect(seenSpecs).toHaveLength(3);
-		expect(seenSpecs.every((spec) => spec === "extracted batch style")).toBe(true);
+		expect(seenSpecs.every((spec) => spec === "extracted batch style")).toBe(
+			true,
+		);
 	});
 
 	it("marks the batch failed before any item runs when style extraction fails", async () => {
@@ -127,12 +142,13 @@ describe("processBatch", () => {
 		const batch = makeBatch(1);
 		const seen: string[] = [];
 		const provider = new StubProvider("probe", (product) => {
-			seen.push(batch.items[0]!.status);
+			const [item] = batch.items;
+			if (item) seen.push(item.status);
 			return image(`for-${"preset" in product ? product.preset : "?"}`);
 		});
 		await processBatch(batch, [provider], FAST);
 		expect(seen).toEqual(["running"]);
-		expect(batch.items[0]!.status).toBe("done");
+		expect(batch.items[0]?.status).toBe("done");
 	});
 
 	it("retries a transient provider error, then marks the item done", async () => {
@@ -146,8 +162,8 @@ describe("processBatch", () => {
 			return image("recovered");
 		});
 		await processBatch(batch, [provider], FAST);
-		expect(batch.items[0]!.status).toBe("done");
-		expect(batch.items[0]!.post?.caption).toBe("recovered");
+		expect(batch.items[0]?.status).toBe("done");
+		expect(batch.items[0]?.post?.caption).toBe("recovered");
 		expect(calls).toBe(2);
 	});
 
@@ -159,8 +175,8 @@ describe("processBatch", () => {
 			throw httpError(400);
 		});
 		await processBatch(batch, [provider], FAST);
-		expect(batch.items[0]!.status).toBe("failed");
-		expect(batch.items[0]!.error).toContain("HTTP 400");
+		expect(batch.items[0]?.status).toBe("failed");
+		expect(batch.items[0]?.error).toContain("HTTP 400");
 		expect(calls).toBe(1);
 	});
 
@@ -169,11 +185,13 @@ describe("processBatch", () => {
 		const primary = new StubProvider("primary", () => {
 			throw httpError(503);
 		});
-		const secondary = new StubProvider("secondary", () => image("from-secondary"));
+		const secondary = new StubProvider("secondary", () =>
+			image("from-secondary"),
+		);
 		await processBatch(batch, [primary, secondary], FAST);
-		expect(batch.items[0]!.status).toBe("done");
-		expect(batch.items[0]!.post?.caption).toBe("from-secondary");
-		expect(batch.items[0]!.post?.meta.provider).toBe("secondary");
+		expect(batch.items[0]?.status).toBe("done");
+		expect(batch.items[0]?.post?.caption).toBe("from-secondary");
+		expect(batch.items[0]?.post?.meta.provider).toBe("secondary");
 	});
 
 	it("marks an item failed when both providers fail, without sinking the batch", async () => {
@@ -190,9 +208,9 @@ describe("processBatch", () => {
 		await processBatch(batch, [primary, secondary], FAST);
 
 		expect(batch.status).toBe("done");
-		expect(batch.items[1]!.status).toBe("failed");
-		expect(batch.items[1]!.error).toContain("HTTP 500");
-		expect(batch.items[0]!.status).toBe("done");
-		expect(batch.items[2]!.status).toBe("done");
+		expect(batch.items[1]?.status).toBe("failed");
+		expect(batch.items[1]?.error).toContain("HTTP 500");
+		expect(batch.items[0]?.status).toBe("done");
+		expect(batch.items[2]?.status).toBe("done");
 	});
 });

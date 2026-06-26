@@ -1,6 +1,6 @@
 import {
-	type GenerateParams,
 	type GeneratedImage,
+	type GenerateParams,
 	type ImageProvider,
 	isTransientError,
 } from "./provider.mts";
@@ -45,7 +45,10 @@ function resolveOptions(options: ResilienceOptions): ResolvedOptions {
 // Exponential backoff with full jitter: each retry waits a random amount in
 // [0, base * 2^(attempt-1)], capped at maxDelayMs, so concurrent retries spread.
 function backoffDelay(attempt: number, opts: ResolvedOptions): number {
-	const ceiling = Math.min(opts.maxDelayMs, opts.baseDelayMs * 2 ** (attempt - 1));
+	const ceiling = Math.min(
+		opts.maxDelayMs,
+		opts.baseDelayMs * 2 ** (attempt - 1),
+	);
 	return Math.floor(ceiling * opts.random());
 }
 

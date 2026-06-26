@@ -7,7 +7,9 @@ import { OpenAIProvider } from "./openai.mts";
 // fallback; the order of this array is the failover order. Keys are read only
 // from env vars (GEMINI_API_KEY, OPENAI_API_KEY). With neither key present the
 // service runs entirely in mock mode, so the demo and CI work without credits.
-export function createProviders(env: NodeJS.ProcessEnv = process.env): ImageProvider[] {
+export function createProviders(
+	env: NodeJS.ProcessEnv = process.env,
+): ImageProvider[] {
 	const providers: ImageProvider[] = [];
 	if (env.GEMINI_API_KEY) {
 		providers.push(new GeminiProvider(env.GEMINI_API_KEY));

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { GenerateParams, GeneratedImage, ImageProvider } from "./provider.mts";
+import type {
+	GeneratedImage,
+	GenerateParams,
+	ImageProvider,
+} from "./provider.mts";
 import {
 	describeStyleWithFailover,
 	generateWithFailover,
@@ -8,13 +12,22 @@ import {
 import type { ImageInput } from "./schema.mts";
 
 const PRODUCT: ImageInput = { preset: "lamp" };
-const PARAMS: GenerateParams = { aspectRatio: "1:1", hashtagCount: 5, captionMaxLength: 2200 };
+const PARAMS: GenerateParams = {
+	aspectRatio: "1:1",
+	hashtagCount: 5,
+	captionMaxLength: 2200,
+};
 
 // No real waiting and deterministic jitter, so the tests are fast and stable.
 const FAST: ResilienceOptions = { sleep: async () => {}, random: () => 0 };
 
 function image(caption: string): GeneratedImage {
-	return { imageBytes: new Uint8Array([1]), mimeType: "image/png", caption, hashtags: [] };
+	return {
+		imageBytes: new Uint8Array([1]),
+		mimeType: "image/png",
+		caption,
+		hashtags: [],
+	};
 }
 
 function httpError(status: number): Error {
@@ -36,7 +49,8 @@ class ScriptedProvider implements ImageProvider {
 	}
 
 	async generate(): Promise<GeneratedImage> {
-		const outcome = this.script[this.calls] ?? this.script[this.script.length - 1];
+		const outcome =
+			this.script[this.calls] ?? this.script[this.script.length - 1];
 		this.calls++;
 		if (outcome instanceof Error) {
 			throw outcome;
@@ -55,7 +69,8 @@ class ScriptedStyleProvider implements ImageProvider {
 	) {}
 
 	async describeStyle(): Promise<string> {
-		const outcome = this.script[this.calls] ?? this.script[this.script.length - 1];
+		const outcome =
+			this.script[this.calls] ?? this.script[this.script.length - 1];
 		this.calls++;
 		if (outcome instanceof Error) {
 			throw outcome;
@@ -74,7 +89,10 @@ function run(providers: ImageProvider[]) {
 
 describe("generateWithFailover", () => {
 	it("retries a transient error then succeeds on the same provider", async () => {
-		const provider = new ScriptedProvider("primary", [httpError(503), image("ok")]);
+		const provider = new ScriptedProvider("primary", [
+			httpError(503),
+			image("ok"),
+		]);
 		const result = await run([provider]);
 		expect(result.image.caption).toBe("ok");
 		expect(result.provider).toBe("primary");
@@ -82,7 +100,10 @@ describe("generateWithFailover", () => {
 	});
 
 	it("does not retry a 4xx error — fails fast", async () => {
-		const provider = new ScriptedProvider("primary", [httpError(400), image("never")]);
+		const provider = new ScriptedProvider("primary", [
+			httpError(400),
+			image("never"),
+		]);
 		await expect(run([provider])).rejects.toThrow("HTTP 400");
 		expect(provider.calls).toBe(1);
 	});
@@ -95,7 +116,9 @@ describe("generateWithFailover", () => {
 
 	it("fails over to the secondary when the primary exhausts its retries", async () => {
 		const primary = new ScriptedProvider("primary", [httpError(503)]);
-		const secondary = new ScriptedProvider("secondary", [image("from-fallback")]);
+		const secondary = new ScriptedProvider("secondary", [
+			image("from-fallback"),
+		]);
 		const result = await run([primary, secondary]);
 		expect(result.provider).toBe("secondary");
 		expect(result.image.caption).toBe("from-fallback");
@@ -107,7 +130,9 @@ describe("generateWithFailover", () => {
 		// A 4xx fails fast on the primary (no retry), but the fallback still gets a
 		// shot — a bad key/quota on one provider shouldn't sink the batch.
 		const primary = new ScriptedProvider("primary", [httpError(401)]);
-		const secondary = new ScriptedProvider("secondary", [image("from-fallback")]);
+		const secondary = new ScriptedProvider("secondary", [
+			image("from-fallback"),
+		]);
 		const result = await run([primary, secondary]);
 		expect(result.provider).toBe("secondary");
 		expect(primary.calls).toBe(1);
@@ -138,17 +163,29 @@ describe("generateWithFailover", () => {
 				return image("after-timeout");
 			},
 		};
-		const result = await generateWithFailover([provider], PRODUCT, [], "s", PARAMS, {
-			...FAST,
-			timeoutMs: 10,
-		});
+		const result = await generateWithFailover(
+			[provider],
+			PRODUCT,
+			[],
+			"s",
+			PARAMS,
+			{
+				...FAST,
+				timeoutMs: 10,
+			},
+		);
 		expect(result.image.caption).toBe("after-timeout");
 		expect(calls).toBe(2);
 	});
 
 	it("retries network errors identified by code", async () => {
-		const netError = Object.assign(new Error("socket hang up"), { code: "ECONNRESET" });
-		const provider = new ScriptedProvider("primary", [netError, image("recovered")]);
+		const netError = Object.assign(new Error("socket hang up"), {
+			code: "ECONNRESET",
+		});
+		const provider = new ScriptedProvider("primary", [
+			netError,
+			image("recovered"),
+		]);
 		const result = await run([provider]);
 		expect(result.image.caption).toBe("recovered");
 		expect(provider.calls).toBe(2);
@@ -161,7 +198,10 @@ describe("generateWithFailover", () => {
 
 describe("describeStyleWithFailover", () => {
 	it("retries a transient error then succeeds on the same provider", async () => {
-		const provider = new ScriptedStyleProvider("primary", [httpError(503), "warm palette"]);
+		const provider = new ScriptedStyleProvider("primary", [
+			httpError(503),
+			"warm palette",
+		]);
 		const result = await describeStyleWithFailover([provider], [], FAST);
 		expect(result.styleSpec).toBe("warm palette");
 		expect(result.provider).toBe("primary");
@@ -170,8 +210,14 @@ describe("describeStyleWithFailover", () => {
 
 	it("fails over to the secondary when the primary exhausts its retries", async () => {
 		const primary = new ScriptedStyleProvider("primary", [httpError(503)]);
-		const secondary = new ScriptedStyleProvider("secondary", ["fallback style"]);
-		const result = await describeStyleWithFailover([primary, secondary], [], FAST);
+		const secondary = new ScriptedStyleProvider("secondary", [
+			"fallback style",
+		]);
+		const result = await describeStyleWithFailover(
+			[primary, secondary],
+			[],
+			FAST,
+		);
 		expect(result.provider).toBe("secondary");
 		expect(result.styleSpec).toBe("fallback style");
 		expect(primary.calls).toBe(3);

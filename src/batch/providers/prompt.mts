@@ -19,7 +19,11 @@ function describe(product: ImageInput): string {
 export const STYLE_DESCRIPTION_PROMPT =
 	"Describe the palette, lighting, mood, and composition of the supplied reference image(s) as one concise visual style spec for guiding product photography. Respond with only the description, no preamble.";
 
-export function imagePrompt(product: ImageInput, styleSpec: string, params: GenerateParams): string {
+export function imagePrompt(
+	product: ImageInput,
+	styleSpec: string,
+	params: GenerateParams,
+): string {
 	return `A polished social-media product photo of ${describe(product)}. Visual style: ${styleSpec} Target aspect ratio ${params.aspectRatio}.`;
 }
 
@@ -56,7 +60,10 @@ export function parseCaptionResponse(
 			caption?: unknown;
 			hashtags?: unknown;
 		};
-		const caption = String(parsed.caption ?? "").slice(0, params.captionMaxLength);
+		const caption = String(parsed.caption ?? "").slice(
+			0,
+			params.captionMaxLength,
+		);
 		const hashtags = Array.isArray(parsed.hashtags)
 			? parsed.hashtags.map((tag) => String(tag)).slice(0, params.hashtagCount)
 			: [];

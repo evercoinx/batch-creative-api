@@ -1,37 +1,44 @@
 {
-  "name": "batch-creative-api",
-  "version": "1.0.0",
-  "description": "Batch Creative API",
-  "homepage": "https://github.com/evercoinx/batch-creative-api#readme",
-  "bugs": {
-    "url": "https://github.com/evercoinx/batch-creative-api/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/evercoinx/batch-creative-api.git"
-  },
-  "license": "MIT",
-  "author": "Serge Grigorenko",
-  "type": "module",
-  "main": "./src/index.mts",
-  "scripts": {
-    "start": "node --experimental-strip-types src/index.mts",
-    "loop": "npx tsx .sandcastle/main.mts",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
-  },
-  "devDependencies": {
-    "@ai-hero/sandcastle": "^0.10.0",
-    "@standard-schema/spec": "^1.1.0",
-    "@types/express": "^5.0.6",
-    "@types/node": "^26.0.1",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.9"
-  },
-  "dependencies": {
-    "@google/genai": "^2.10.0",
-    "express": "^5.2.1",
-    "openai": "^6.45.0",
-    "zod": "^4.4.3"
-  }
+	"name": "batch-creative-api",
+	"version": "1.0.0",
+	"description": "Batch Creative API",
+	"homepage": "https://github.com/evercoinx/batch-creative-api#readme",
+	"bugs": {
+		"url": "https://github.com/evercoinx/batch-creative-api/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/evercoinx/batch-creative-api.git"
+	},
+	"license": "MIT",
+	"author": "Serge Grigorenko",
+	"type": "module",
+	"main": "./src/index.mts",
+	"scripts": {
+		"start": "node --experimental-strip-types src/index.mts",
+		"loop": "npx tsx .sandcastle/main.mts",
+		"lint": "biome lint .",
+		"format": "biome format --write .",
+		"check": "biome check .",
+		"check:write": "biome check --write .",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"prepare": "lefthook install"
+	},
+	"devDependencies": {
+		"@ai-hero/sandcastle": "^0.10.0",
+		"@biomejs/biome": "2.5.1",
+		"@standard-schema/spec": "^1.1.0",
+		"@types/express": "^5.0.6",
+		"@types/node": "^26.0.1",
+		"lefthook": "2.1.9",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.9"
+	},
+	"dependencies": {
+		"@google/genai": "^2.10.0",
+		"express": "^5.2.1",
+		"openai": "^6.45.0",
+		"zod": "^4.4.3"
+	}
 }

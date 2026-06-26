@@ -1,12 +1,16 @@
-import express, { type ErrorRequestHandler, type Request, type Response } from "express";
 import { fileURLToPath } from "node:url";
-import { MAX_BODY_SIZE, MAX_CONCURRENT_BATCHES } from "./config.mts";
+import express, {
+	type ErrorRequestHandler,
+	type Request,
+	type Response,
+} from "express";
 import { OUTPUTS_DIR, OUTPUTS_URL_PREFIX } from "./batch/outputs.mts";
 import { processBatch } from "./batch/processor.mts";
 import type { ImageProvider } from "./batch/provider.mts";
 import { createProviders } from "./batch/providers/index.mts";
 import { createBatchSchema } from "./batch/schema.mts";
 import { BatchStore } from "./batch/store.mts";
+import { MAX_BODY_SIZE, MAX_CONCURRENT_BATCHES } from "./config.mts";
 
 export type AppDeps = {
 	store?: BatchStore;
@@ -38,7 +42,9 @@ export function createApp(deps: AppDeps = {}): express.Express {
 
 		const parsed = createBatchSchema.safeParse(req.body);
 		if (!parsed.success) {
-			res.status(400).json({ error: "Invalid request", issues: parsed.error.issues });
+			res
+				.status(400)
+				.json({ error: "Invalid request", issues: parsed.error.issues });
 			return;
 		}
 
@@ -61,7 +67,11 @@ export function createApp(deps: AppDeps = {}): express.Express {
 	// Body-parser failures (malformed JSON, body over the size cap) surface here;
 	// normalize them to 400 so all bad input is reported the same way.
 	const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
-		if (err instanceof Error && "status" in err && (err.status === 400 || err.status === 413)) {
+		if (
+			err instanceof Error &&
+			"status" in err &&
+			(err.status === 400 || err.status === 413)
+		) {
 			res.status(400).json({ error: `Invalid request body: ${err.message}` });
 			return;
 		}

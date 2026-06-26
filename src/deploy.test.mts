@@ -5,7 +5,8 @@ import { describe, expect, it } from "vitest";
 // The deploy config is committed so the Render deployment is reproducible (PRD
 // "operator wants a committed deploy config"). These checks pin the contract the
 // author relies on without standing up a real deploy.
-const root = (rel: string) => fileURLToPath(new URL(`../${rel}`, import.meta.url));
+const root = (rel: string) =>
+	fileURLToPath(new URL(`../${rel}`, import.meta.url));
 
 describe("Render deploy config", () => {
 	it("render.yaml declares a web service that builds and starts the app", () => {

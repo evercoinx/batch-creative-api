@@ -58,7 +58,7 @@
 			button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.07); }
 			button:active:not(:disabled) { transform: translateY(0); }
 			button:disabled { opacity: 0.5; cursor: default; }
-			label { font-weight: 600; display: block; margin-top: 0.5rem; }
+			label, .field-label { font-weight: 600; display: block; margin-top: 0.5rem; }
 			select {
 				font: inherit; padding: 0.5rem 0.75rem; border-radius: 8px;
 				border: 1px solid var(--border); background: var(--card); color: var(--text);
@@ -120,10 +120,10 @@
 			<h2>The product</h2>
 			<p class="muted">Interactive demo running in mock mode. Pick product images and a reference style, choose a platform, and submit a batch.</p>
 
-			<label>Product images (click to select)</label>
+			<span class="field-label">Product images (click to select)</span>
 			<div class="thumbs" id="thumbs"></div>
 
-			<label>Reference style (click to select)</label>
+			<span class="field-label">Reference style (click to select)</span>
 			<div class="thumbs" id="refThumbs"></div>
 
 			<label for="platform">Platform</label>
@@ -133,7 +133,7 @@
 				<option value="linkedin">Linkedin</option>
 			</select>
 
-			<p><button id="submit">Submit batch</button></p>
+			<p><button type="button" id="submit">Submit batch</button></p>
 
 			<div id="status" class="muted"></div>
 			<div class="items" id="items"></div>
@@ -230,7 +230,7 @@
 				const elByName = new Map();
 				for (const preset of presets) {
 					const el = document.createElement("div");
-					el.className = "thumb" + (set.has(preset.name) ? " selected" : "");
+					el.className = `thumb${set.has(preset.name) ? " selected" : ""}`;
 					el.innerHTML = `<img src="${preset.url}" alt="${preset.name}" /><span>${preset.name}</span>`;
 					el.onclick = () => {
 						if (set.has(preset.name)) set.delete(preset.name);
@@ -258,14 +258,14 @@
 			const submitBtn = document.getElementById("submit");
 
 			function render(batch) {
-				statusEl.textContent = `Batch ${batch.id} — ${batch.status}` + (batch.error ? `: ${batch.error}` : "");
+				statusEl.textContent = `Batch ${batch.id} — ${batch.status}${batch.error ? `: ${batch.error}` : ""}`;
 				itemsEl.innerHTML = "";
 				for (const item of batch.items) {
 					const div = document.createElement("div");
 					div.className = "item";
 					const img = item.post ? `<img src="${item.post.imageUrl}" alt="" />` : "";
 					const caption = item.post ? item.post.caption : item.error || "…";
-					const tags = item.post ? item.post.hashtags.map((t) => "#" + t).join(" ") : "";
+					const tags = item.post ? item.post.hashtags.map((t) => `#${t}`).join(" ") : "";
 					div.innerHTML = `${img}<div><span class="badge ${item.status}">${item.status}</span><p>${caption}</p><small class="muted">${tags}</small></div>`;
 					itemsEl.appendChild(div);
 				}
@@ -302,7 +302,7 @@
 				});
 				if (!res.ok) {
 					const err = await res.json();
-					statusEl.textContent = "Error: " + (err.error || res.status);
+					statusEl.textContent = `Error: ${err.error || res.status}`;
 					submitBtn.disabled = false;
 					return;
 				}

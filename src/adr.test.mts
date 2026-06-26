@@ -5,7 +5,8 @@ import { describe, expect, it } from "vitest";
 // ADRs are committed so the architectural decisions behind the service are
 // reproducible (PRD #10: "ADR 0002 ... is written and accompanies this PRD").
 // These checks pin the contract the PRD relies on without prose drift.
-const root = (rel: string) => fileURLToPath(new URL(`../${rel}`, import.meta.url));
+const root = (rel: string) =>
+	fileURLToPath(new URL(`../${rel}`, import.meta.url));
 
 describe("ADR 0002 (style consistency via shared text spec)", () => {
 	const adr = readFileSync(

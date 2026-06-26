@@ -7,7 +7,9 @@ let close: () => Promise<void>;
 
 beforeAll(async () => {
 	const server = createApp().listen(0);
-	await new Promise<void>((resolve) => server.once("listening", () => resolve()));
+	await new Promise<void>((resolve) =>
+		server.once("listening", () => resolve()),
+	);
 	const { port } = server.address() as AddressInfo;
 	baseUrl = `http://127.0.0.1:${port}`;
 	close = () =>
@@ -20,7 +22,10 @@ afterAll(async () => {
 	await close();
 });
 
-async function pollUntilDone(id: string): Promise<{ status: string; items: Array<{ status: string; post?: unknown }> }> {
+async function pollUntilDone(id: string): Promise<{
+	status: string;
+	items: Array<{ status: string; post?: unknown }>;
+}> {
 	for (let i = 0; i < 50; i++) {
 		const res = await fetch(`${baseUrl}/batches/${id}`);
 		const body = await res.json();
@@ -37,7 +42,9 @@ describe("HTTP service", () => {
 		const res = await fetch(`${baseUrl}/batches`, {
 			method: "POST",
 			headers: { "content-type": "application/json" },
-			body: JSON.stringify({ products: [{ preset: "lamp" }, { preset: "phone" }] }),
+			body: JSON.stringify({
+				products: [{ preset: "lamp" }, { preset: "phone" }],
+			}),
 		});
 		expect(res.status).toBe(202);
 		const { batchId } = await res.json();
@@ -46,7 +53,9 @@ describe("HTTP service", () => {
 		const batch = await pollUntilDone(batchId);
 		expect(batch.status).toBe("done");
 		expect(batch.items).toHaveLength(2);
-		expect(batch.items.every((item) => item.status === "done" && item.post)).toBe(true);
+		expect(
+			batch.items.every((item) => item.status === "done" && item.post),
+		).toBe(true);
 
 		// Each post's image was written to outputs/ and is served as a fetchable URL.
 		const post = batch.items[0]?.post as { imageUrl: string } | undefined;

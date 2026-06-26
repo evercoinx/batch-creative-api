@@ -1,5 +1,9 @@
 import OpenAI from "openai";
-import type { GenerateParams, GeneratedImage, ImageProvider } from "../provider.mts";
+import type {
+	GeneratedImage,
+	GenerateParams,
+	ImageProvider,
+} from "../provider.mts";
 import { resolveImageInput } from "../resolve-input.mts";
 import type { ImageInput } from "../schema.mts";
 import { NEUTRAL_STYLE_SPEC } from "../style.mts";
@@ -45,7 +49,9 @@ export class OpenAIProvider implements ImageProvider {
 				const { bytes, mimeType } = await resolveImageInput(reference);
 				return {
 					type: "image_url" as const,
-					image_url: { url: `data:${mimeType};base64,${bytes.toString("base64")}` },
+					image_url: {
+						url: `data:${mimeType};base64,${bytes.toString("base64")}`,
+					},
 				};
 			}),
 		);
@@ -54,7 +60,10 @@ export class OpenAIProvider implements ImageProvider {
 			messages: [
 				{
 					role: "user",
-					content: [{ type: "text" as const, text: STYLE_DESCRIPTION_PROMPT }, ...imageParts],
+					content: [
+						{ type: "text" as const, text: STYLE_DESCRIPTION_PROMPT },
+						...imageParts,
+					],
 				},
 			],
 		});
@@ -85,7 +94,9 @@ export class OpenAIProvider implements ImageProvider {
 
 		const chat = await this.#client.chat.completions.create({
 			model: TEXT_MODEL,
-			messages: [{ role: "user", content: captionPrompt(product, styleSpec, params) }],
+			messages: [
+				{ role: "user", content: captionPrompt(product, styleSpec, params) },
+			],
 		});
 		const text = chat.choices[0]?.message?.content ?? "";
 		const { caption, hashtags } = parseCaptionResponse(text, params);
