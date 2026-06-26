@@ -203,9 +203,9 @@
 			for (const tab of tabs) {
 				tab.onclick = () => {
 					for (const other of tabs) {
-						const selected = other === tab;
-						other.setAttribute("aria-selected", String(selected));
-						document.getElementById(other.dataset.panel).hidden = !selected;
+						const isSelected = other === tab;
+						other.setAttribute("aria-selected", String(isSelected));
+						document.getElementById(other.dataset.panel).hidden = !isSelected;
 					}
 				};
 			}
