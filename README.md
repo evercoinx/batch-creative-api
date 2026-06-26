@@ -40,6 +40,7 @@ curl -s -XPOST localhost:3000/batches -H 'content-type: application/json' \
 
 - `npm run typecheck` — `tsc --noEmit`
 - `npm test` — vitest (retry/failover/lifecycle covered with a scripted mock provider, no network)
+- `npm run lint` / `npm run format` — Biome lint / format (`npm run check` for both; `check:write` to fix)
 
 ## Configuration
 

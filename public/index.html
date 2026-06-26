@@ -175,17 +175,22 @@
 				<li><strong>Web:</strong> Express 5 + zod for request validation</li>
 				<li><strong>Providers:</strong> <code>@google/genai</code> (Gemini), <code>openai</code> SDKs behind one seam</li>
 				<li><strong>Tests:</strong> vitest — retry/failover/lifecycle covered with a scripted mock provider, no network</li>
-				<li><strong>Deploy:</strong> Render web service via committed <code>render.yaml</code>with an ephemeral disk for <code>outputs</code></li>
+				<li><strong>Lint/format:</strong> Biome (config + scripts + lefthook pre-commit + CI gate)</li>
+				<li><strong>Deploy:</strong> Render web service via committed <code>render.yaml</code> with an ephemeral disk for <code>outputs</code></li>
 			</ul>
 
 			<h3>Time breakdown</h3>
 			<table>
 				<tr><th>Phase</th><th>Time</th></tr>
+				<tr><td>Scaffold (TypeScript template) + CI fix</td><td>15 mins</td></tr>
 				<tr><td>Domain modelling, glossary &amp; architecture decision records</td><td>20 mins</td></tr>
-				<tr><td>Batch endpoint + validation + caps (mock mode)</td><td>30 mins</td></tr>
+				<tr><td>Batch endpoint + validation + caps (mock mode)</td><td>25 mins</td></tr>
 				<tr><td>Provider seam + retry/failover + real providers</td><td>15 mins</td></tr>
-				<tr><td>Outputs to disk, served as URLs</td><td>15 mins</td></tr>
-				<tr><td>Demo page + Render deploy config</td><td>10 mins</td></tr>
+				<tr><td>Full post: style-spec consistency + caption + hashtags + platform</td><td>10 mins</td></tr>
+				<tr><td>Demo page (tabs) + Render deploy config</td><td>25 mins</td></tr>
+				<tr><td>Real Gemini generation (vision-derived style) + per-batch extraction wired into processor</td><td>30 mins</td></tr>
+				<tr><td>Deploy config: Node 26 + Gemini secret</td><td>10 mins</td></tr>
+				<tr><td>Biome lint+format toolchain (config, scripts, lefthook, CI)</td><td>15 mins</td></tr>
 			</table>
 		</section>
 
