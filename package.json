@@ -16,9 +16,9 @@
   "main": "./src/index.mts",
   "scripts": {
     "start": "node --experimental-strip-types src/index.mts",
+    "loop": "npx tsx .sandcastle/main.mts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@ai-hero/sandcastle": "^0.10.0",

@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>Batch Creative API — Demo</title>
+		<title>Batch Creative API</title>
 		<style>
 			:root {
 				--accent: #2563eb;
@@ -107,7 +107,7 @@
 	<body>
 		<header class="hero">
 			<h1>Batch Creative API</h1>
-			<p>One on-brand social post per product image — generated as a reliable, async batch with provider retries and failover.</p>
+			<p>One on-brand social post per product image generated as a reliable, async batch with provider retries and failover.</p>
 		</header>
 
 		<div class="tablist" role="tablist" aria-label="Demo page sections">
@@ -118,19 +118,19 @@
 
 		<section id="demo" class="card panel" role="tabpanel" aria-labelledby="tab-demo">
 			<h2>The product</h2>
-			<p class="muted">Interactive demo — running in mock mode. Pick product images and a reference style, choose a platform, and submit a batch.</p>
+			<p class="muted">Interactive demo running in mock mode. Pick product images and a reference style, choose a platform, and submit a batch.</p>
 
 			<label>Product images (click to select)</label>
 			<div class="thumbs" id="thumbs"></div>
 
-			<label>Reference style — 1–2 images (click to select)</label>
+			<label>Reference style (click to select)</label>
 			<div class="thumbs" id="refThumbs"></div>
 
 			<label for="platform">Platform</label>
 			<select id="platform">
-				<option value="instagram">instagram</option>
-				<option value="x">x</option>
-				<option value="linkedin">linkedin</option>
+				<option value="instagram">Instagram</option>
+				<option value="x">X</option>
+				<option value="linkedin">Linkedin</option>
 			</select>
 
 			<p><button id="submit">Submit batch</button></p>
@@ -148,46 +148,45 @@
 				<code>POST /batches</code> validates the request with zod, creates an
 				in-memory batch, and returns a batch id immediately; the browser polls
 				<code>GET /batches/:id</code> and watches per-item status go from
-				<em>pending → running → done/failed</em>. All image generation flows
+				<em>pending → running → done/failed</em>.
+			</p>
+			<p>
+				All image generation flows
 				through one <code>ImageProvider</code> seam, with a resilience layer that
 				retries transient errors (3× exponential backoff + jitter), times out
 				each call, and fails over from the primary provider to the fallback so a
 				single outage never sinks the batch. One style spec is extracted per batch
 				from the reference images and reused for every product, keeping the set
-				visually consistent. Built and grilled decision-by-decision rather than
-				from a prototype; the architecture is recorded in
-				<code>docs/adr/0001</code>.
+				visually consistent.
 			</p>
 
 			<h3>How AI was used</h3>
 			<p>
-				Built with Claude (Opus 4.8) driving a test-first RGR loop: each slice
+				Built with Claude (Opus 4.8/Sonnet 4.6) driving a test-first red-green-refactor loop: each slice
 				started with a failing test, then the implementation to make it pass, then
-				a refactor pass. AI also drafted the domain glossary, the architecture
-				ADR, and these write-ups, and acts as the runtime — Gemini (Imagen +
+				a refactor pass. AI acts as the runtime — Gemini (Imagen +
 				gemini-2.5-flash) is the primary image/caption provider with OpenAI
 				(gpt-image-1 + gpt-4o-mini) as the failover.
 			</p>
 
 			<h3>Toolset</h3>
 			<ul>
-				<li><strong>Runtime:</strong> Node 22 running <code>.mts</code> via <code>--experimental-strip-types</code></li>
+				<li><strong>Runtime:</strong> Node 26 running <code>.mts</code> via <code>--experimental-strip-types</code></li>
 				<li><strong>Web:</strong> Express 5 + zod for request validation</li>
 				<li><strong>Providers:</strong> <code>@google/genai</code> (Gemini), <code>openai</code> SDKs behind one seam</li>
 				<li><strong>Tests:</strong> vitest — retry/failover/lifecycle covered with a scripted mock provider, no network</li>
-				<li><strong>Deploy:</strong> Render web service via committed <code>render.yaml</code>; ephemeral disk for <code>outputs/</code></li>
+				<li><strong>Deploy:</strong> Render web service via committed <code>render.yaml</code>with an ephemeral disk for <code>outputs</code></li>
 			</ul>
 
 			<h3>Time breakdown</h3>
 			<table>
-				<tr><th>Phase</th><th>Approx.</th></tr>
-				<tr><td>Domain modelling, glossary &amp; ADR</td><td>0.5 h</td></tr>
-				<tr><td>Tracer bullet — batch endpoint + validation + caps (mock mode)</td><td>1.5 h</td></tr>
-				<tr><td>Provider seam + retry/failover + real providers</td><td>2 h</td></tr>
-				<tr><td>Outputs to disk, served as URLs</td><td>1 h</td></tr>
-				<tr><td>Demo page + Render deploy config</td><td>1 h</td></tr>
+				<tr><th>Phase</th><th>Time</th></tr>
+				<tr><td>Domain modelling, glossary &amp; architecture decision records</td><td>20 mins</td></tr>
+				<tr><td>Batch endpoint + validation + caps (mock mode)</td><td>30 mins</td></tr>
+				<tr><td>Provider seam + retry/failover + real providers</td><td>15 mins</td></tr>
+				<tr><td>Outputs to disk, served as URLs</td><td>15 mins</td></tr>
+				<tr><td>Demo page + Render deploy config</td><td>10 mins</td></tr>
 			</table>
-			<p class="muted"><em>Draft figures — the author edits this section before deploy.</em></p>
 		</section>
 
 		<section id="code" class="panel" role="tabpanel" aria-labelledby="tab-code" hidden>
@@ -195,6 +194,10 @@
 			<p>
 				Full source on GitHub:
 				<a href="https://github.com/evercoinx/batch-creative-api" target="_blank" rel="noopener">github.com/evercoinx/batch-creative-api</a>
+			</p>
+			<p>
+				Issues on GitHub:
+				<a href="https://github.com/evercoinx/batch-creative-api/issues" target="_blank" rel="noopener">github.com/evercoinx/batch-creative-api/issues</a>
 			</p>
 		</section>
 
