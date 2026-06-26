@@ -22,13 +22,16 @@ export class MockProvider implements ImageProvider {
 
 	async generate(
 		product: ImageInput,
-		_references: ImageInput[],
+		references: ImageInput[],
 		_styleSpec: string,
 		params: GenerateParams,
 	): Promise<GeneratedImage> {
 		const preset = "preset" in product ? product.preset : FALLBACK_PRESET;
 		const imageBytes = await readFile(presetPath(preset));
 		const subject = describeProduct(product);
+		// Reflect the reference styling in the caption so the demo visibly shows
+		// references taking effect (otherwise mock output is identical with/without).
+		const styled = references.length > 0 ? " styled from references" : "";
 		// Base pool plus numbered fillers, so the mock can satisfy any platform's
 		// hashtagCount (instagram asks for 5) rather than capping at the pool size.
 		const pool = ["batchcreative", "mock", "post", subject];
@@ -39,7 +42,7 @@ export class MockProvider implements ImageProvider {
 		return {
 			imageBytes,
 			mimeType: "image/jpeg",
-			caption: `A mock post for ${subject}.`.slice(0, params.captionMaxLength),
+			caption: `A mock post for ${subject}${styled}.`.slice(0, params.captionMaxLength),
 			hashtags,
 		};
 	}
