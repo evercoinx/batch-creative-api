@@ -78,3 +78,17 @@ regenerates and the in-memory batch store starts fresh on restart.
    Leave both unset to deploy the live demo in mock mode.
 4. Deploy. The service is reachable at its Render URL; `GET /` serves the demo
    page.
+
+Provisioning the service and entering the keys in the dashboard is a one-time
+manual operator step.
+
+### Known limitations of the live demo
+
+- **Free-tier cold start.** The service runs on Render's free plan, which spins
+  down after inactivity. The first request after an idle period waits for a cold
+  start (tens of seconds) before the demo responds; subsequent requests are fast.
+- **Presets only.** The demo page submits bundled **preset** products and
+  reference styles — there is no upload. To try your own images, call
+  `POST /batches` directly with `{ base64 }` inputs.
+- **`url` inputs are unsupported.** An `ImageInput` of `{ url }` is rejected with
+  a clear "not yet supported" error; use `{ preset }` or `{ base64 }` instead.
