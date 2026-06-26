@@ -79,9 +79,8 @@ regenerates and the in-memory batch store starts fresh on restart.
 4. Deploy. The service is reachable at its Render URL; `GET /` serves the demo
    page.
 
-`GEMINI_API_KEY` is declared `sync: false`, so it is **never** committed — Render
-prompts for it once in the dashboard and stores it as a service secret.
-Provisioning the service and pasting the key is a one-time manual operator step.
+Provisioning the service and entering the keys in the dashboard is a one-time
+manual operator step.
 
 ### Known limitations of the live demo
 
