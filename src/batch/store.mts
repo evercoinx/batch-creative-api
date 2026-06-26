@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import type { CreateBatchRequest } from "./schema.mts";
-import { NEUTRAL_STYLE_SPEC } from "./style.mts";
 import type { Batch, BatchView } from "./types.mts";
 
 // In-memory, single-process batch store. Sufficient for a showcase demo; the
@@ -15,9 +14,10 @@ export class BatchStore {
 			status: "pending",
 			platform: request.platform,
 			references,
-			// Placeholder spec: real per-batch extraction (describeStyle on the
-			// provider seam) is wired into the processor in a later slice (PRD #10).
-			styleSpec: NEUTRAL_STYLE_SPEC,
+			// No synchronous derivation: the processor extracts the real per-batch
+			// style spec (describeStyle on the provider seam) once before item
+			// fan-out, so the HTTP create response is never blocked on it (PRD #10).
+			styleSpec: "",
 			items: request.products.map((product) => ({ product, status: "pending" })),
 			createdAt: Date.now(),
 		};
@@ -30,10 +30,11 @@ export class BatchStore {
 	}
 
 	// Batches still pending or running. Used to enforce the concurrent-batches cap.
+	// "done" and "failed" are both terminal and don't count toward the cap.
 	activeCount(): number {
 		let count = 0;
 		for (const batch of this.#batches.values()) {
-			if (batch.status !== "done") {
+			if (batch.status !== "done" && batch.status !== "failed") {
 				count++;
 			}
 		}
@@ -45,6 +46,7 @@ export class BatchStore {
 			id: batch.id,
 			status: batch.status,
 			platform: batch.platform,
+			error: batch.error,
 			items: batch.items.map(({ status, post, error }) => ({ status, post, error })),
 		};
 	}

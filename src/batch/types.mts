@@ -20,16 +20,20 @@ export type BatchItem = {
 	error?: string;
 };
 
-export type BatchStatus = "pending" | "running" | "done";
+export type BatchStatus = "pending" | "running" | "done" | "failed";
 
 export type Batch = {
 	id: string;
 	status: BatchStatus;
 	platform: Platform;
 	// Reference image(s) and the one style spec extracted from them, reused for
-	// every product image so the batch stays visually consistent.
+	// every product image so the batch stays visually consistent. styleSpec starts
+	// empty: the processor extracts it once, before item fan-out (PRD #10).
 	references: ImageInput[];
 	styleSpec: string;
+	// Set only when the batch itself fails — currently when style extraction
+	// exhausts retries and failover before any item runs.
+	error?: string;
 	items: BatchItem[];
 	createdAt: number;
 };
@@ -39,5 +43,6 @@ export type BatchView = {
 	id: string;
 	status: BatchStatus;
 	platform: Platform;
+	error?: string;
 	items: Array<Pick<BatchItem, "status" | "post" | "error">>;
 };

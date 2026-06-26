@@ -258,7 +258,7 @@
 			const submitBtn = document.getElementById("submit");
 
 			function render(batch) {
-				statusEl.textContent = `Batch ${batch.id} — ${batch.status}`;
+				statusEl.textContent = `Batch ${batch.id} — ${batch.status}` + (batch.error ? `: ${batch.error}` : "");
 				itemsEl.innerHTML = "";
 				for (const item of batch.items) {
 					const div = document.createElement("div");
@@ -275,8 +275,10 @@
 				const res = await fetch(`/batches/${id}`);
 				const batch = await res.json();
 				render(batch);
-				if (batch.status !== "done") setTimeout(() => poll(id), 500);
-				else submitBtn.disabled = false;
+				// "done" and "failed" are both terminal — stop polling on either, so
+				// a batch that fails style extraction doesn't poll forever.
+				if (batch.status === "done" || batch.status === "failed") submitBtn.disabled = false;
+				else setTimeout(() => poll(id), 500);
 			}
 
 			submitBtn.onclick = async () => {

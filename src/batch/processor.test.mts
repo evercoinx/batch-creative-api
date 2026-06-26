@@ -79,21 +79,48 @@ describe("processBatch", () => {
 		expect(post?.imageUrl).toBe("/outputs/test-batch-0.jpeg");
 	});
 
-	it("reuses one style spec for every product image in the batch", async () => {
+	it("extracts one style spec via describeStyle and reuses it for every product image", async () => {
 		const batch = makeBatch(3);
-		batch.styleSpec = "shared batch style";
 		const seenSpecs: string[] = [];
+		let describeCalls = 0;
 		const provider: ImageProvider = {
 			name: "spec-probe",
-			describeStyle: async () => "probe-style",
+			describeStyle: async () => {
+				describeCalls++;
+				return "extracted batch style";
+			},
 			generate: async (_product, _references, styleSpec) => {
 				seenSpecs.push(styleSpec);
 				return image("ok");
 			},
 		};
 		await processBatch(batch, [provider], FAST);
+		// Extraction runs once per batch, before fan-out, and the result is set on
+		// the batch and reused for every product image.
+		expect(describeCalls).toBe(1);
+		expect(batch.styleSpec).toBe("extracted batch style");
 		expect(seenSpecs).toHaveLength(3);
-		expect(seenSpecs.every((spec) => spec === "shared batch style")).toBe(true);
+		expect(seenSpecs.every((spec) => spec === "extracted batch style")).toBe(true);
+	});
+
+	it("marks the batch failed before any item runs when style extraction fails", async () => {
+		const batch = makeBatch(3);
+		const provider: ImageProvider = {
+			name: "no-style",
+			// Non-transient failure: extraction fails fast, exhausting failover.
+			describeStyle: async () => {
+				throw httpError(400);
+			},
+			generate: async () => {
+				throw new Error("generate must not run when extraction failed");
+			},
+		};
+		await processBatch(batch, [provider], FAST);
+		expect(batch.status).toBe("failed");
+		expect(batch.error).toContain("HTTP 400");
+		// No item ran: all stay pending with no post.
+		expect(batch.items.every((item) => item.status === "pending")).toBe(true);
+		expect(batch.items.every((item) => item.post === undefined)).toBe(true);
 	});
 
 	it("sets each item running before it is done", async () => {

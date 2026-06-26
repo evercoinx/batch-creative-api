@@ -2,7 +2,11 @@ import { ITEM_CONCURRENCY } from "../config.mts";
 import { type OutputWriter, writeOutput } from "./outputs.mts";
 import { PLATFORM_CONFIG } from "./platform-config.mts";
 import type { GeneratedImage, ImageProvider } from "./provider.mts";
-import { generateWithFailover, type ResilienceOptions } from "./resilience.mts";
+import {
+	describeStyleWithFailover,
+	generateWithFailover,
+	type ResilienceOptions,
+} from "./resilience.mts";
 import type { Platform } from "./schema.mts";
 import type { Batch, BatchItem, Post } from "./types.mts";
 
@@ -71,6 +75,20 @@ export async function processBatch(
 	batch.status = "running";
 
 	const { writeImage = writeOutput, ...resilience } = options;
+
+	// Extract the one style spec for the batch before any item runs, through the
+	// same retry/failover path as generation. If extraction exhausts retries and
+	// failover, fail the whole batch fast — every item shares this spec, so there
+	// is nothing to generate against without it.
+	try {
+		const { styleSpec } = await describeStyleWithFailover(providers, batch.references, resilience);
+		batch.styleSpec = styleSpec;
+	} catch (error) {
+		batch.error = error instanceof Error ? error.message : String(error);
+		batch.status = "failed";
+		return;
+	}
+
 	// entries() yields [index, item]; the index keys the on-disk output filename.
 	const queue = batch.items.entries();
 	const workers: Promise<void>[] = [];
