@@ -1,5 +1,11 @@
 # Style consistency via a shared text spec, not per-image conditioning
 
+> **Superseded in part by [ADR 0003](0003-gemini-subject-conditioning-preserves-the-product.md).**
+> The Gemini leg now feeds the product bytes to a subject-conditioning image
+> model, so the text-to-image constraint below no longer holds for that provider.
+> The shared-style-spec decision still stands: one spec is extracted per batch and
+> reused for every item; reference bytes are still not fed per item.
+
 A batch must produce a social post per product image with a **consistent visual
 style across every output** (the challenge's headline requirement). We guarantee
 that consistency by extracting one text **style spec** from the reference
