@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 import type {
 	GeneratedImage,
 	GenerateParams,
@@ -27,9 +27,11 @@ function aspectToSize(aspectRatio: string): string {
 }
 
 // Fallback provider, used when the primary exhausts its retries. Generates the
-// image with gpt-image-1 and the caption + hashtags with a chat model, behind
-// the shared ImageProvider seam. OpenAI's APIError carries a numeric `status`
-// that the resilience layer uses to classify transient vs. fatal failures.
+// image with gpt-image-1's subject-conditioning edit call (the product bytes are
+// fed in per item so the real product is preserved) and the caption + hashtags
+// with a chat model, behind the shared ImageProvider seam. OpenAI's APIError
+// carries a numeric `status` that the resilience layer uses to classify transient
+// vs. fatal failures.
 export class OpenAIProvider implements ImageProvider {
 	readonly name = "openai";
 	readonly #client: OpenAI;
@@ -74,15 +76,28 @@ export class OpenAIProvider implements ImageProvider {
 		return styleSpec;
 	}
 
+	// Subject conditioning: the product bytes are fed to the image-edit model on
+	// every item so the real product (label, shape) is preserved while the scene
+	// is restyled to the shared styleSpec. input_fidelity "high" reinforces the
+	// shared prompt's preservation wording on this leg. References are NOT fed per
+	// item — they were consumed once by describeStyle, so `references` stays unused
+	// here (ADR 0003).
 	async generate(
 		product: ImageInput,
 		_references: ImageInput[],
 		styleSpec: string,
 		params: GenerateParams,
 	): Promise<GeneratedImage> {
-		const imageResponse = await this.#client.images.generate({
+		const { bytes, mimeType: productMimeType } =
+			await resolveImageInput(product);
+		const productImage = await toFile(bytes, "product", {
+			type: productMimeType,
+		});
+		const imageResponse = await this.#client.images.edit({
 			model: IMAGE_MODEL,
+			image: productImage,
 			prompt: imagePrompt(product, styleSpec, params),
+			input_fidelity: "high",
 			n: 1,
 			size: aspectToSize(params.aspectRatio),
 		});
