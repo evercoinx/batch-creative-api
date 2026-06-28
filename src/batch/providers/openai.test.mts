@@ -17,13 +17,18 @@ describe("OpenAIProvider.generate", () => {
 		// is a plain Error, so the resilience layer classifies it non-transient.
 		const provider = new OpenAIProvider("test-key");
 		const product: ImageInput = { url: "https://example.com/p.png" };
-		await expect(
-			provider.generate(product, [], "style", params),
-		).rejects.toThrow("url inputs not yet supported");
 
-		const error = await provider
-			.generate(product, [], "style", params)
-			.catch((e) => e);
+		let error: unknown;
+		try {
+			await provider.generate(product, [], "style", params);
+		} catch (caught) {
+			error = caught;
+		}
+
+		expect(error).toBeInstanceOf(Error);
+		if (error instanceof Error) {
+			expect(error.message).toContain("url inputs not yet supported");
+		}
 		expect(isTransientError(error)).toBe(false);
 	});
 });
