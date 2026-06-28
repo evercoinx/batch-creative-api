@@ -71,7 +71,24 @@
 				animation: fade-in 0.3s ease both;
 			}
 			@keyframes fade-in { from { opacity: 0; transform: translateY(6px); } }
-			.item img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+			.item img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; }
+			#lightbox {
+				display: none; position: fixed; inset: 0; z-index: 1000;
+				align-items: center; justify-content: center;
+				background: rgba(0, 0, 0, 0.85);
+				animation: fade-in 0.3s ease both;
+			}
+			#lightbox .lightbox-wrap { position: relative; }
+			#lightbox img {
+				max-width: 90vw; max-height: 90vh; object-fit: contain;
+				border-radius: 8px; display: block;
+			}
+			#lightbox .lightbox-close {
+				position: absolute; top: -0.75rem; right: -0.75rem;
+				width: 2rem; height: 2rem; padding: 0; border-radius: 999px;
+				background: #fff; color: #1a1a1a; font-size: 1.3rem; line-height: 1;
+				box-shadow: var(--shadow); cursor: pointer;
+			}
 			.badge {
 				font-size: 0.72rem; padding: 0.18rem 0.6rem; border-radius: 999px;
 				text-transform: uppercase; font-weight: 700; letter-spacing: 0.03em;
@@ -262,6 +279,33 @@
 			const statusEl = document.getElementById("status");
 			const submitBtn = document.getElementById("submit");
 
+			// Lightbox: one hidden overlay injected once, shown by populating the
+			// <img> src and switching display to flex. Dismissed via the × button,
+			// a backdrop click, or Escape (the latter only while it's visible).
+			const lightbox = document.createElement("div");
+			lightbox.id = "lightbox";
+			lightbox.innerHTML =
+				'<div class="lightbox-wrap"><button type="button" class="lightbox-close" aria-label="Close">×</button><img alt="" /></div>';
+			document.body.appendChild(lightbox);
+			const lightboxImg = lightbox.querySelector("img");
+
+			function openLightbox(src) {
+				lightboxImg.src = src;
+				lightbox.style.display = "flex";
+			}
+			function closeLightbox() {
+				lightbox.style.display = "none";
+				lightboxImg.removeAttribute("src");
+			}
+			// Backdrop click closes; the wrapper stops propagation so clicking the
+			// image itself does not bubble up and dismiss the lightbox.
+			lightbox.onclick = closeLightbox;
+			lightbox.querySelector(".lightbox-wrap").onclick = (e) => e.stopPropagation();
+			lightbox.querySelector(".lightbox-close").onclick = closeLightbox;
+			document.addEventListener("keydown", (e) => {
+				if (e.key === "Escape" && lightbox.style.display !== "none") closeLightbox();
+			});
+
 			function render(batch) {
 				statusEl.textContent = `Batch ${batch.id} — ${batch.status}${batch.error ? `: ${batch.error}` : ""}`;
 				itemsEl.innerHTML = "";
@@ -273,6 +317,11 @@
 					const tags = item.post ? item.post.hashtags.map((t) => `#${t}`).join(" ") : "";
 					div.innerHTML = `${img}<div><span class="badge ${item.status}">${item.status}</span><p>${caption}</p><small class="muted">${tags}</small></div>`;
 					itemsEl.appendChild(div);
+				}
+				// Only done items render an <img>; pending/running have none, so this
+				// implicitly skips them — clicking a non-image item does nothing.
+				for (const img of itemsEl.querySelectorAll(".item img")) {
+					img.onclick = () => openLightbox(img.src);
 				}
 			}
 
