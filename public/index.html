@@ -305,6 +305,11 @@
 			document.addEventListener("keydown", (e) => {
 				if (e.key === "Escape" && lightbox.style.display !== "none") closeLightbox();
 			});
+			// Delegated so re-rendered results stay clickable without rebinding.
+			// Only done items render an <img>, so other clicks match nothing.
+			itemsEl.onclick = (e) => {
+				if (e.target.matches(".item img")) openLightbox(e.target.src);
+			};
 
 			function render(batch) {
 				statusEl.textContent = `Batch ${batch.id} — ${batch.status}${batch.error ? `: ${batch.error}` : ""}`;
@@ -317,11 +322,6 @@
 					const tags = item.post ? item.post.hashtags.map((t) => `#${t}`).join(" ") : "";
 					div.innerHTML = `${img}<div><span class="badge ${item.status}">${item.status}</span><p>${caption}</p><small class="muted">${tags}</small></div>`;
 					itemsEl.appendChild(div);
-				}
-				// Only done items render an <img>; pending/running have none, so this
-				// implicitly skips them — clicking a non-image item does nothing.
-				for (const img of itemsEl.querySelectorAll(".item img")) {
-					img.onclick = () => openLightbox(img.src);
 				}
 			}
 
