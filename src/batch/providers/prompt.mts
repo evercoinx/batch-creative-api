@@ -14,17 +14,30 @@ function describe(product: ImageInput): string {
 	return "the supplied product";
 }
 
+// The image model now receives the product image bytes directly, so its identity
+// comes from pixels, not words. A preset name is at best a weak category label and
+// must stay subordinate to the bytes; an uploaded product has no useful name hint.
+function categoryHint(product: ImageInput): string {
+	if ("preset" in product) {
+		return ` It may be a ${product.preset}; treat that name only as a weak category hint, subordinate to the supplied image.`;
+	}
+	return "";
+}
+
 // Instruction paired with the reference image bytes when a real provider extracts
 // a batch's style spec via its vision model.
 export const STYLE_DESCRIPTION_PROMPT =
 	"Describe the palette, lighting, mood, and composition of the supplied reference image(s) as one concise visual style spec for guiding product photography. Respond with only the description, no preamble.";
 
+// Built for subject-conditioning image models: the supplied product image bytes
+// are authoritative for product identity (preserve the real product, not a
+// lookalike), and only the surrounding scene is restyled to the batch style spec.
 export function imagePrompt(
 	product: ImageInput,
 	styleSpec: string,
 	params: GenerateParams,
 ): string {
-	return `A polished social-media product photo of ${describe(product)}. Visual style: ${styleSpec} Target aspect ratio ${params.aspectRatio}.`;
+	return `Create a polished social-media product photo. The supplied product image is authoritative for product identity: preserve the real product exactly — its label, shape, and proportions must match the supplied image, never a lookalike.${categoryHint(product)} Restyle only the surrounding scene to this visual style: ${styleSpec} Target aspect ratio ${params.aspectRatio}.`;
 }
 
 export function captionPrompt(
