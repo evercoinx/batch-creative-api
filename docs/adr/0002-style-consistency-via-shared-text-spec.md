@@ -1,5 +1,7 @@
 # Style consistency via a shared text spec, not per-image conditioning
 
+**Status: Superseded by 0003** — [ADR 0003](0003-gemini-subject-conditioning-preserves-the-product.md) records the product-preservation decision that replaces the text-to-image constraint for the Gemini leg.
+
 > **Superseded in part by [ADR 0003](0003-gemini-subject-conditioning-preserves-the-product.md).**
 > The Gemini leg now feeds the product bytes to a subject-conditioning image
 > model, so the text-to-image constraint below no longer holds for that provider.

@@ -27,6 +27,12 @@ The unit of output for one product image: a styled image plus a caption,
 hashtags, and platform metadata. One post per product image.
 _Avoid_: creative, ad, output
 
+**Product preservation** (invariant):
+The actual product is preserved in its post — its subject identity (label,
+shape) is the real one, not a lookalike. Only the surrounding scene is styled
+to match the reference; the product itself is never restyled.
+_Avoid_: lookalike, substitute, restyled product
+
 **Platform**:
 The target social network (instagram | x | linkedin) chosen per request. Sets
 caption length, image aspect ratio, and hashtag conventions. Content is
