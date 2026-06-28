@@ -6,14 +6,16 @@ import { describe, expect, it } from "vitest";
 // reproducible. These checks pin the contract the PRDs rely on without prose
 // drift: ADR 0002 recorded the original text-to-image decision (PRD #10), and
 // ADR 0003 supersedes it with per-image subject conditioning (PRD #16).
-const root = (rel: string) =>
-	fileURLToPath(new URL(`../${rel}`, import.meta.url));
-
-describe("ADR 0002 (style consistency via shared text spec)", () => {
-	const adr = readFileSync(
-		root("docs/adr/0002-style-consistency-via-shared-text-spec.md"),
+//
+// Lowercased so the contract checks below match prose regardless of casing.
+const readAdr = (file: string) =>
+	readFileSync(
+		fileURLToPath(new URL(`../docs/adr/${file}`, import.meta.url)),
 		"utf8",
 	).toLowerCase();
+
+describe("ADR 0002 (style consistency via shared text spec)", () => {
+	const adr = readAdr("0002-style-consistency-via-shared-text-spec.md");
 
 	it("records the text-to-image decision rather than per-image conditioning", () => {
 		expect(adr).toContain("text-to-image");
@@ -30,10 +32,9 @@ describe("ADR 0002 (style consistency via shared text spec)", () => {
 });
 
 describe("ADR 0003 (subject conditioning preserves the product)", () => {
-	const adr = readFileSync(
-		root("docs/adr/0003-gemini-subject-conditioning-preserves-the-product.md"),
-		"utf8",
-	).toLowerCase();
+	const adr = readAdr(
+		"0003-gemini-subject-conditioning-preserves-the-product.md",
+	);
 
 	it("records per-image product conditioning rather than text-to-image lookalikes", () => {
 		expect(adr).toContain("product image bytes");
